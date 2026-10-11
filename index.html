@@ -1,0 +1,2351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lead Time: project dates and reminders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ECEEEC; --surface:#FFFFFF; --surface-2:#F4F5F4; --ink:#1D2226; --muted:#5C6770;
+  --rule:#D3D7D5; --rule-strong:#9AA3A8;
+  --signal:#F4C20D; --signal-ink:#1D2226; --signal-soft:#FFF3C2;
+  --action:#1D5FA6; --action-ink:#FFFFFF; --alert:#B42318; --alert-soft:#FCEBE9;
+  --c-coord:#3D5A80; --c-site:#B8561A; --c-deliv:#2F7D4E; --c-insp:#7A4FB0; --c-start:#0F7A83; --c-proj:#1D2226;
+  --font-body:"Barlow","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  --font-head:"Barlow Semi Condensed","Barlow","Arial Narrow","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15181B; --surface:#1E2226; --surface-2:#252A2F; --ink:#E6E9E7; --muted:#9BA5AC;
+    --rule:#343A40; --rule-strong:#59636C;
+    --signal:#F4C20D; --signal-ink:#1D2226; --signal-soft:#3A3310;
+    --action:#7AAEEB; --action-ink:#0E1A28; --alert:#F0877E; --alert-soft:#3A1D1B;
+    --c-coord:#8FA9CF; --c-site:#E08B55; --c-deliv:#6FC08F; --c-insp:#B59AE0; --c-start:#5CC4CC; --c-proj:#E6E9E7;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15181B; --surface:#1E2226; --surface-2:#252A2F; --ink:#E6E9E7; --muted:#9BA5AC;
+  --rule:#343A40; --rule-strong:#59636C;
+  --signal:#F4C20D; --signal-ink:#1D2226; --signal-soft:#3A3310;
+  --action:#7AAEEB; --action-ink:#0E1A28; --alert:#F0877E; --alert-soft:#3A1D1B;
+  --c-coord:#8FA9CF; --c-site:#E08B55; --c-deliv:#6FC08F; --c-insp:#B59AE0; --c-start:#5CC4CC; --c-proj:#E6E9E7;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+img,svg{max-width:100%}
+h1,h2,h3{font-family:var(--font-head);margin:0;line-height:1.1;font-weight:600;letter-spacing:.005em}
+p{margin:0}
+a{color:var(--action)}
+:focus-visible{outline:3px solid var(--action);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.tnum{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+/* Top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--surface);border-bottom:1px solid var(--rule)}
+.top-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:8px 24px;padding:10px 20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-head);font-weight:700;font-size:23px;color:var(--ink);background:none;border:0;padding:0;cursor:pointer}
+.brand svg{width:34px;height:20px;flex:none}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tab{font:inherit;font-weight:600;font-size:15.5px;color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;padding:10px 12px 7px;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab[aria-current="page"]{color:var(--ink);border-bottom-color:var(--signal)}
+.top .spacer{flex:1}
+@media (max-width:720px){
+  .top-inner{padding:8px 14px 0}
+  .tabs{order:3;width:100%;margin:0 -6px}
+  .top .spacer{display:none}
+  .top .btn-new{margin-left:auto}
+}
+
+/* Buttons */
+.btn{font:inherit;font-weight:600;font-size:15px;border:1px solid var(--rule-strong);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:4px;cursor:pointer;min-height:40px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;line-height:1.1;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn-primary{background:var(--action);color:var(--action-ink);border-color:var(--action)}
+.btn-primary:hover{filter:brightness(1.08);border-color:var(--action)}
+.btn-signal{background:var(--signal);color:var(--signal-ink);border-color:var(--signal)}
+.btn-signal:hover{border-color:var(--signal-ink)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn-ghost:hover{color:var(--ink);border-color:var(--rule)}
+.btn-danger{color:var(--alert)}
+.btn-sm{min-height:34px;padding:5px 10px;font-size:14px}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.linkbtn{font:inherit;background:none;border:0;padding:0;color:var(--action);cursor:pointer;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+
+/* Layout */
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px}
+.page-h{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px;margin-bottom:26px}
+.page-h h1{font-size:clamp(30px,4.2vw,42px);font-weight:700}
+.page-h p{margin-top:6px;color:var(--muted);max-width:64ch}
+.grid-2{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:36px;align-items:start}
+@media (max-width:900px){.grid-2{grid-template-columns:minmax(0,1fr);gap:32px}}
+.sec{margin-bottom:34px}
+.sec-h{font-size:23px;margin:0 0 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.count{font-family:var(--font-body);font-size:14px;font-weight:600;background:var(--signal);color:var(--signal-ink);border-radius:999px;padding:1px 9px;line-height:1.5}
+.note{background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:14px 16px;color:var(--muted)}
+.note b{color:var(--ink)}
+.banner{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;background:var(--signal-soft);border:1px solid var(--signal);border-radius:4px;padding:12px 16px;margin-bottom:24px}
+.warn-box{border:1px solid var(--alert);background:var(--alert-soft);border-radius:4px;padding:14px 16px;margin-bottom:26px}
+.warn-box h2{font-size:19px;margin-bottom:8px;color:var(--alert)}
+.warn-box ul{margin:0;padding-left:20px}
+.warn-box li{margin:4px 0}
+.warn-box li small{color:var(--muted);font-size:14px}
+
+/* Reminder cards */
+.rem{background:var(--surface);border:1px solid var(--rule);border-left:6px solid var(--signal);padding:16px 18px 14px;margin-bottom:14px;border-radius:2px 4px 4px 2px}
+.rem-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.kind{display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:600;color:var(--muted)}
+.kind::before{content:"";width:10px;height:10px;border-radius:2px;background:var(--cat);flex:none}
+.rem h3{font-size:23px;margin:3px 0 3px}
+.rem h3 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+.rem h3 button:hover{text-decoration:underline;text-underline-offset:3px}
+.meta{display:flex;flex-wrap:wrap;gap:2px 16px;color:var(--muted);font-size:15px}
+.when{font-family:var(--font-head);font-weight:700;font-size:22px;white-space:nowrap;text-align:right;line-height:1}
+.when small{display:block;font-family:var(--font-body);font-weight:500;font-size:13.5px;color:var(--muted);margin-top:4px}
+.rem-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+/* The countdown ruler */
+.ruler{position:relative;height:46px;margin:18px 26px 6px 18px}
+.ruler .base{position:absolute;left:0;right:0;top:9px;height:2px;background:var(--rule-strong)}
+.ruler .fill{position:absolute;left:0;top:8px;height:4px;background:var(--ink);border-radius:2px}
+.tk{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);white-space:nowrap}
+.tk i{width:20px;height:20px;border-radius:50%;border:2px solid var(--rule-strong);background:var(--surface);display:grid;place-items:center}
+.tk i svg{width:11px;height:11px}
+.tk.sent i{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.tk.dismissed i,.tk.passed i{background:var(--rule-strong);border-color:var(--rule-strong)}
+.tk.due i{background:var(--signal);border-color:var(--signal-ink);box-shadow:0 0 0 4px var(--signal-soft)}
+.tk.due span{color:var(--ink);font-weight:600}
+.tk.ev i{border-radius:3px;background:var(--cat);border-color:var(--cat)}
+.tk.ev span{color:var(--ink);font-weight:600}
+.now{position:absolute;top:-11px;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--ink)}
+
+/* Rows and agenda */
+.list{border-top:1px solid var(--rule)}
+.row{display:grid;grid-template-columns:4px minmax(0,1fr) auto;gap:12px;padding:11px 2px 11px 0;border-bottom:1px solid var(--rule);align-items:start}
+.row-bar{align-self:stretch;background:var(--cat);border-radius:2px;min-height:22px}
+.row-title{font-weight:600;font-size:16px}
+.row-sub{display:flex;flex-wrap:wrap;gap:1px 14px;color:var(--muted);font-size:14.5px;margin-top:1px}
+.row-next{font-size:14px;color:var(--muted);margin-top:4px}
+.tag{display:inline-block;font-size:13px;font-weight:600;padding:1px 8px;border-radius:3px;background:var(--signal);color:var(--signal-ink)}
+.tag.quiet{background:var(--surface-2);color:var(--muted);border:1px solid var(--rule)}
+.is-done .row-title{text-decoration:line-through;color:var(--muted)}
+.is-past{opacity:.65}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.day-h{display:flex;gap:10px;align-items:baseline;font-family:var(--font-head);font-weight:600;font-size:17px;padding:16px 0 6px}
+.day-h:first-child{padding-top:0}
+.day-h .rel{font-family:var(--font-body);font-size:14px;color:var(--muted);font-weight:500}
+.agenda .list{border-top:0}
+.agenda .row:last-child{border-bottom:0}
+.agenda-day{border-bottom:1px solid var(--rule);padding-bottom:4px}
+
+/* Timeline (project page) */
+.trow{display:grid;grid-template-columns:74px 4px minmax(0,1fr) auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule);align-items:start}
+.tdate{line-height:1.15}
+.tdate b{display:block;font-family:var(--font-head);font-size:19px;font-weight:600;white-space:nowrap}
+.tdate span{font-size:13.5px;color:var(--muted)}
+@media (max-width:560px){
+  .trow{grid-template-columns:62px 4px minmax(0,1fr)}
+  .trow .row-actions{grid-column:3;justify-content:flex-start}
+  .row{grid-template-columns:4px minmax(0,1fr)}
+  .row .row-actions{grid-column:2;justify-content:flex-start}
+  .rem-top{flex-direction:column;gap:6px}
+  .when{text-align:left}
+}
+
+/* Projects list */
+.prow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 260px;gap:6px 20px;align-items:center;padding:14px 4px;border-bottom:1px solid var(--rule)}
+.prow-open{font:inherit;color:inherit;background:none;border:0;padding:0;text-align:left;cursor:pointer;display:block;width:100%}
+.prow-open span{display:block}
+.prow-open:hover .prow-name{text-decoration:underline;text-underline-offset:3px}
+.prow-dates{cursor:pointer}
+.prow-name{font-family:var(--font-head);font-weight:600;font-size:21px}
+.prow-sub{color:var(--muted);font-size:14.5px}
+.prow-end{display:flex;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+@media (max-width:640px){.prow{grid-template-columns:minmax(0,1fr)}.prow-end{justify-content:flex-start}}
+
+/* People */
+.person{padding:13px 0;border-bottom:1px solid var(--rule)}
+.person-name{font-weight:600}
+.pref{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;border:1px solid var(--rule-strong);border-radius:3px;padding:1px 8px;margin-top:5px}
+
+/* Calendar */
+.cal-bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-bar h1{font-size:clamp(28px,4vw,38px);font-weight:700;min-width:8ch}
+.cal-nav{display:flex;gap:6px;align-items:center}
+.check{display:inline-flex;align-items:center;gap:8px;font-size:15px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--action)}
+.cal-wd,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal-wd div{font-size:13.5px;font-weight:600;color:var(--muted);padding:6px 8px}
+.cal-grid{border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+.cal-cell{min-height:112px;border:0;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:6px;background:var(--surface);cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:3px;text-align:left;font:inherit;color:inherit;min-width:0}
+.cal-cell:hover{background:var(--surface-2)}
+.cal-cell.out{background:var(--surface-2);color:var(--muted)}
+.cal-cell.is-sel{box-shadow:inset 0 0 0 2px var(--action)}
+.cal-num{font-weight:600;font-size:14.5px;width:26px;height:26px;display:grid;place-items:center;border-radius:3px}
+.cal-cell.is-today .cal-num{background:var(--signal);color:var(--signal-ink)}
+.chip{display:block;font-size:12.5px;line-height:1.25;padding:2px 5px;border-left:3px solid var(--cat);background:var(--surface-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:0 2px 2px 0}
+.cal-cell.out .chip{opacity:.7}
+.chip.done{text-decoration:line-through;opacity:.6}
+.more{font-size:12px;color:var(--muted);padding-left:4px}
+.cal-rem{font-size:12px;font-weight:600;margin-top:auto;display:flex;align-items:center;gap:5px;color:var(--ink)}
+.cal-rem::before{content:"";width:12px;height:4px;background:var(--signal);border-radius:1px}
+.cal-dots{display:none;gap:3px;flex-wrap:wrap}
+.cal-dots i{width:7px;height:7px;border-radius:2px;background:var(--cat)}
+@media (max-width:680px){
+  .cal-cell{min-height:58px;padding:4px}
+  .cal-chips,.cal-rem span{display:none}
+  .cal-dots{display:flex}
+  .cal-rem{font-size:0;margin-top:0}
+  .cal-wd div{padding:6px 4px;font-size:12px}
+}
+.day-panel{margin-top:26px}
+.day-panel h2{font-size:24px;margin-bottom:12px}
+
+/* Forms */
+.fields{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px 16px}
+.f{grid-column:span 6;min-width:0}
+.f.half{grid-column:span 3}
+.f.third{grid-column:span 2}
+@media (max-width:620px){.f.half,.f.third{grid-column:span 6}}
+label,.lbl{display:block;font-weight:600;font-size:14.5px;margin-bottom:5px}
+input,select,textarea{font:inherit;font-size:16px;width:100%;padding:9px 10px;border:1px solid var(--rule-strong);border-radius:4px;background:var(--surface);color:var(--ink);min-height:44px}
+textarea{min-height:76px;resize:vertical;line-height:1.4}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--action);box-shadow:0 0 0 3px color-mix(in srgb,var(--action) 25%,transparent)}
+input[aria-invalid="true"]{border-color:var(--alert)}
+.err{color:var(--alert);font-size:14px;margin-top:5px;font-weight:600}
+.hint{color:var(--muted);font-size:14px;margin-top:5px}
+
+/* Wizard */
+.wiz{position:fixed;inset:0;z-index:50;background:rgba(18,22,25,.5);display:flex;justify-content:center;align-items:stretch;padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
+.wiz[hidden]{display:none}
+.wiz-panel{background:var(--surface);width:min(1060px,100%);display:grid;grid-template-columns:250px minmax(0,1fr);border-radius:6px;overflow:hidden;max-height:100%;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.wiz-side{background:var(--surface-2);border-right:1px solid var(--rule);overflow:auto;padding:18px 0}
+.wiz-side h2{font-size:17px;padding:0 18px 12px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wiz-side ol{list-style:none;margin:0;padding:0}
+.ws{display:flex;align-items:center;gap:10px;width:100%;padding:7px 18px;background:none;border:0;font:inherit;font-size:15px;color:var(--muted);cursor:pointer;text-align:left}
+.ws b{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;border:1.5px solid var(--rule-strong);font-weight:600}
+.ws.has b{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.ws:hover{color:var(--ink)}
+.ws.cur{color:var(--ink);font-weight:600;background:var(--surface)}
+.ws.cur b{background:var(--signal);border-color:var(--signal-ink);color:var(--signal-ink)}
+.wiz-main{display:flex;flex-direction:column;min-height:0;min-width:0}
+.wiz-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px 0 32px}
+.wiz-head .prog{font-size:14px;color:var(--muted);font-weight:600}
+.ws-select{display:none;max-width:260px;min-height:38px;padding:6px 8px;font-size:15px}
+.wiz-scroll{overflow:auto;padding:14px 32px 28px;flex:1}
+.q{font-size:clamp(26px,3.4vw,34px);font-weight:600;margin:0 0 8px;max-width:26ch}
+.q:focus{outline:none}
+.q-help{color:var(--muted);margin:0 0 22px;max-width:62ch}
+.wiz-foot{border-top:1px solid var(--rule);padding:12px 32px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--surface)}
+.item{border:1px solid var(--rule);border-radius:4px;padding:14px 16px 16px;margin-bottom:14px;background:var(--surface)}
+.item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px}
+.item-head h3{font-size:19px}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.quick .btn{white-space:normal;text-align:left}
+.calc{margin-top:14px;font-weight:600}
+.review-list .row{grid-template-columns:4px 110px minmax(0,1fr)}
+.review-list .rd{font-weight:600;font-size:15px}
+@media (max-width:760px){
+  .wiz{padding:0}
+  .wiz-panel{grid-template-columns:minmax(0,1fr);border-radius:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);width:100%}
+  .wiz-side{display:none}
+  .ws-select{display:block}
+  .wiz-head{padding:10px 14px 0}
+  .wiz-head .prog{display:none}
+  .wiz-scroll{padding:12px 16px 24px}
+  .wiz-foot{padding:10px 16px}
+  .review-list .row{grid-template-columns:4px minmax(0,1fr)}
+  .review-list .rd{grid-column:2}
+}
+
+/* Modal */
+.modal{position:fixed;inset:0;z-index:60;background:rgba(18,22,25,.5);display:flex;align-items:center;justify-content:center;padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.modal[hidden]{display:none}
+.modal-box{background:var(--surface);border-radius:6px;width:min(640px,100%);max-height:100%;overflow:auto;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-box h2{font-size:26px;margin-bottom:14px}
+.modal-box textarea{min-height:260px;font-size:14.5px}
+.modal-box .btns{margin-top:16px}
+
+/* Empty state */
+.hero{padding:34px 0 10px;max-width:760px}
+.hero h1{font-size:clamp(34px,5.6vw,56px);font-weight:700;line-height:1.02;margin-bottom:16px}
+.hero p{font-size:18px;color:var(--muted);max-width:58ch;margin-bottom:24px}
+.demo{margin-top:40px;max-width:640px}
+.demo .lbl{color:var(--muted);font-weight:500;margin-bottom:0}
+
+/* Settings */
+.set-sec{padding:22px 0;border-bottom:1px solid var(--rule);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px 40px}
+.set-sec:first-of-type{padding-top:0}
+.set-sec h2{font-size:21px;margin-bottom:6px}
+.set-sec .muted{font-size:15px}
+@media (max-width:760px){.set-sec{grid-template-columns:minmax(0,1fr)}}
+.offs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.off{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule-strong);border-radius:4px;padding:4px 4px 4px 12px;font-weight:600;background:var(--surface)}
+.off button{font:inherit;background:none;border:0;cursor:pointer;color:var(--muted);width:28px;height:28px;border-radius:3px;font-size:18px;line-height:1}
+.off button:hover{background:var(--surface-2);color:var(--ink)}
+.inline{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.inline input{width:120px}
+
+/* Plans review */
+.plans{border:1px dashed var(--rule-strong);border-radius:4px;padding:14px 16px 16px;margin-bottom:18px;background:var(--surface-2)}
+.plans-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px 16px;flex-wrap:wrap}
+.plans-head h3{font-size:19px;margin-bottom:3px}
+.plans-head p{font-size:15px;max-width:60ch}
+.pfile{margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)}
+.pfile-h{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-bottom:6px}
+.pfile-h .btn{margin-left:auto}
+.pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px;max-height:300px;overflow:auto;padding:2px}
+.pg{border:2px solid var(--rule);background:var(--surface);border-radius:3px;padding:4px 4px 3px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font:inherit;font-size:12.5px;color:var(--muted)}
+.pg.on{border-color:var(--action);color:var(--ink);font-weight:600}
+.pg-img{width:100%;height:78px;display:grid;place-items:center;background:var(--surface-2);overflow:hidden}
+.pg-img img{max-width:100%;max-height:100%;display:block}
+.plans-busy{display:flex;align-items:center;gap:10px;margin-top:14px;font-weight:600}
+.spin{width:18px;height:18px;border-radius:50%;border:3px solid var(--rule);border-top-color:var(--action);flex:none}
+@media (prefers-reduced-motion: no-preference){.spin{animation:spin .9s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}}
+.plans-res{margin-top:14px;padding-top:12px;border-top:1px solid var(--rule)}
+.facts{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:5px 16px;margin:8px 0 0;font-size:15px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;font-weight:600}
+.src{font-weight:400;font-size:13px;color:var(--muted);margin-left:6px}
+@media (max-width:560px){.facts{grid-template-columns:minmax(0,1fr)}.facts dd{margin-bottom:6px}}
+.plans-files{margin-top:12px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:15px}
+.plans-files .lbl{margin:0}
+.pf{display:inline-flex;align-items:center;gap:2px}
+.fdep{margin-top:14px;border-left:4px solid var(--rule-strong);background:var(--surface-2);padding:12px 14px 14px;border-radius:0 4px 4px 0}
+.fdep.req{border-left-color:var(--alert)}
+.fdep h4{font-family:var(--font-head);font-size:17px;font-weight:600;margin:0 0 4px}
+.fdep p{font-size:15px;margin-bottom:10px}
+.fdep p:last-child{margin-bottom:0}
+.item-head .btns{gap:6px}
+.plans-main{margin-top:22px}
+.fact-h{font-family:var(--font-head);font-size:16.5px;font-weight:600;margin:14px 0 0}
+.fill-sum{margin-top:14px;padding:12px 14px;background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--c-deliv);border-radius:0 4px 4px 0;font-size:15px}
+.fill-sum p + p{margin-top:6px}
+.conf{margin:6px 0 10px;padding-left:18px}
+.conf li{margin:6px 0}
+.conf li .btn{margin-left:10px}
+.plans-hint{margin:0 0 16px;color:var(--muted);font-size:15px}
+.facts dd mark,.facts dt.hl{background:var(--signal-soft);color:var(--ink);padding:0 4px;border-radius:2px}
+.checks{list-style:none;padding:0;margin:8px 0 0}
+.checks li{position:relative;padding-left:20px;margin:5px 0;font-size:15px}
+.checks li::before{content:"";position:absolute;left:2px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--rule-strong)}
+.checks li.good::before{background:var(--c-deliv)}
+.checks li.bad{font-weight:600}
+.checks li.bad::before{background:var(--alert)}
+.pkg{border-left-color:var(--c-site)}
+.pk-row{display:flex;align-items:center;gap:10px;padding:6px 8px;margin:2px 0;border-radius:3px;font-size:15px;cursor:pointer}
+.pk-row input{width:18px;height:18px;min-height:0;flex:none;accent-color:var(--action)}
+.pk-row input:disabled + span{color:var(--muted)}
+.pk-row.hl{background:var(--signal-soft);box-shadow:inset 0 0 0 1px var(--signal)}
+.pk-v{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.pk-total{margin-top:10px;padding-top:10px;border-top:1px solid var(--rule);font-size:15.5px}
+.pk-warn{color:var(--alert);font-weight:600}
+.pg-mark{font-size:11px;font-weight:600;background:var(--signal);color:var(--signal-ink);border-radius:2px;padding:0 4px}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--surface);border-radius:4px;padding:10px 12px 10px 16px;display:flex;gap:14px;align-items:center;max-width:calc(100% - 32px);font-weight:500;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.toast[hidden]{display:none}
+.toast button{font:inherit;font-weight:600;background:none;border:1px solid currentColor;color:inherit;border-radius:3px;padding:4px 10px;cursor:pointer}
+
+@media (prefers-reduced-motion: no-preference){
+  .rem.flash{animation:flash .9s ease-out}
+  @keyframes flash{from{background:var(--signal-soft)}to{background:var(--surface)}}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <button class="brand" data-act="tab" data-view="today" aria-label="Lead Time, go to Today">
+      <svg viewBox="0 0 34 20" aria-hidden="true"><rect x="1" y="9" width="32" height="2" rx="1" fill="currentColor"/><rect x="2" y="5" width="2" height="10" rx="1" fill="currentColor"/><rect x="12" y="6.5" width="2" height="7" rx="1" fill="currentColor"/><rect x="20" y="6.5" width="2" height="7" rx="1" fill="currentColor"/><circle cx="27" cy="10" r="5" fill="#F4C20D" stroke="#1D2226" stroke-width="1.5"/></svg>
+      Lead Time
+    </button>
+    <nav class="tabs" aria-label="Main">
+      <button class="tab" data-act="tab" data-view="today">Today</button>
+      <button class="tab" data-act="tab" data-view="calendar">Calendar</button>
+      <button class="tab" data-act="tab" data-view="projects">Projects</button>
+      <button class="tab" data-act="tab" data-view="settings">Settings</button>
+    </nav>
+    <div class="spacer"></div>
+    <button class="btn btn-primary btn-new" data-act="new-project">New project</button>
+  </div>
+</header>
+<main id="main" class="wrap" tabindex="-1"></main>
+<div id="wizard" class="wiz" hidden role="dialog" aria-modal="true" aria-labelledby="wiz-q"></div>
+<div id="modal" class="modal" hidden role="dialog" aria-modal="true"></div>
+<div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+<input type="file" id="import-file" accept=".json,application/json" hidden>
+<input type="file" id="plans-file" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp" multiple hidden>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- Helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = (p) => (p||'x') + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const clone = o => JSON.parse(JSON.stringify(o));
+const plural = (n, w, pl) => `${n} ${n===1 ? w : (pl || w+'s')}`;
+const pad = n => String(n).padStart(2,'0');
+const toISO = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseISO = s => { if(!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null; const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const todayISO = () => toISO(new Date());
+const addDays = (iso, n) => { const d = parseISO(iso); d.setDate(d.getDate()+n); return toISO(d); };
+const diffDays = (a, b) => { const x = parseISO(a), y = parseISO(b); return Math.round((Date.UTC(y.getFullYear(),y.getMonth(),y.getDate()) - Date.UTC(x.getFullYear(),x.getMonth(),x.getDate()))/86400000); };
+const LOC = 'en-US';
+const fmtShort = iso => { const d = parseISO(iso); return d ? d.toLocaleDateString(LOC,{weekday:'short',month:'short',day:'numeric'}) : ''; };
+const fmtLong = iso => { const d = parseISO(iso); return d ? d.toLocaleDateString(LOC,{weekday:'long',month:'long',day:'numeric',year:'numeric'}) : ''; };
+const fmtMD = iso => { const d = parseISO(iso); return d ? d.toLocaleDateString(LOC,{month:'short',day:'numeric'}) : ''; };
+const fmtWD = iso => { const d = parseISO(iso); return d ? d.toLocaleDateString(LOC,{weekday:'short'}) : ''; };
+const fmtTime = t => { if(!t || !/^\d{1,2}:\d{2}/.test(t)) return ''; const [h,m] = t.split(':').map(Number); return `${((h+11)%12)+1}:${pad(m)} ${h>=12?'PM':'AM'}`; };
+const relDay = d => d===0 ? 'Today' : d===1 ? 'Tomorrow' : d===-1 ? 'Yesterday' : d>1 ? `In ${d} days` : `${-d} days ago`;
+const whenPhrase = d => d===0 ? 'today' : d===1 ? 'tomorrow' : d>1 ? `in ${d} days` : d===-1 ? 'yesterday' : `${-d} days ago`;
+const CHECK = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.5 5 9.2 10 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const SAFE_ID = /^[A-Za-z0-9_\-.~:@+]{1,120}$/;
+
+function offLong(o){
+  if(o % 30 === 0) return plural(o/30, 'month');
+  if(o % 7 === 0) return plural(o/7, 'week');
+  return plural(o, 'day');
+}
+function offShort(o){
+  if(o % 30 === 0) return `${o/30} mo`;
+  if(o % 7 === 0) return `${o/7} wk`;
+  return `${o} d`;
+}
+
+/* ---------- What the app knows about a generator job ---------- */
+const CATS = {coord:'var(--c-coord)', site:'var(--c-site)', deliv:'var(--c-deliv)', insp:'var(--c-insp)', startup:'var(--c-start)', proj:'var(--c-proj)'};
+const TYPES = {
+  start:{label:'Project start', cat:'proj'},
+  finish:{label:'Estimated completion', cat:'proj', noRemind:true},
+  turnover:{label:'Turnover meeting', cat:'coord'},
+  plans:{label:'Plans review', cat:'coord'},
+  stakeholder:{label:'Stakeholder contact', cat:'coord'},
+  forming:{label:'Concrete forming', cat:'site'},
+  concrete:{label:'Concrete pour', cat:'site'},
+  crane:{label:'Crane lift', cat:'site'},
+  fuel:{label:'Fuel', cat:'deliv'},
+  generator:{label:'Generator delivery', cat:'deliv'},
+  ats:{label:'ATS delivery', cat:'deliv'},
+  inspection:{label:'Inspection', cat:'insp'},
+  fdep:{label:'FDEP storage tank', cat:'insp'},
+  startup:{label:'Startup', cat:'startup'},
+  other:{label:'Other work', cat:'coord'}
+};
+const catColor = type => CATS[(TYPES[type]||TYPES.other).cat];
+const CONTACT_METHODS = ['Email','Phone call','Text message','Microsoft Teams','In person','Mail / letter'];
+const INSPECTIONS = ['Underground electrical','Slab inspection','Rough electrical','Pre-power inspection','Fuel inspection','Electrical final','Building final','Fire final'];
+const YESNO = ['Yes','No','Not sure yet'];
+const F = (k, label, t, extra) => Object.assign({k, label, t: t||'text', w:'full'}, extra||{});
+
+const STEPS = [
+  {key:'job', kind:'project', plansUpload:true, nav:'The project', q:'Which project is this?', help:'These basics appear at the top of every reminder email. Upload the plans and submittals below to fill in the rest.', fields:[
+    F('name','Project name','text',{req:true, ph:'e.g. Riverside Clinic standby generator'}),
+    F('client','Client or owner','text',{w:'half'}),
+    F('projectNumber','Job or PO number','text',{w:'half'}),
+    F('siteAddress','Site address')
+  ]},
+  {key:'schedule', kind:'project', nav:'Start and duration', q:'When does work start, and how long will it run?', help:'Lead Time estimates the completion date from this and flags anything scheduled outside the project window.', fields:[
+    F('startDate','Project start date','date',{w:'third'}),
+    F('durationValue','Duration','number',{w:'third', ph:'e.g. 6'}),
+    F('durationUnit','Unit','select',{w:'third', opts:['days','weeks','months'], noBlank:true})
+  ]},
+  {key:'turnover', kind:'list', type:'turnover', nav:'Turnover meeting', item:'Meeting', add:'Add another meeting', q:'When is the turnover meeting?', help:'The handoff from sales or estimating to the field team.', fields:[
+    F('date','Date','date',{w:'third'}), F('time','Time','time',{w:'third'}),
+    F('location','Where','text',{w:'full', ph:'Address, room, or meeting link'}),
+    F('attendees','Who is attending'),
+    F('notes','Agenda or things to bring','textarea')
+  ]},
+  {key:'plans', kind:'list', type:'plans', nav:'Plans review', item:'Review', add:'Add another review', q:'Where do the plans stand in review?', help:'Put the date you expect a decision in the first box. That date drives the reminders.', fields:[
+    F('date','Review decision due','date',{w:'third'}),
+    F('submitted','Date submitted','date',{w:'third'}),
+    F('status','Status','select',{w:'third', opts:['Not submitted','In review','Comments to address','Approved']}),
+    F('reviewer','Reviewer or AHJ','text',{w:'half'}),
+    F('permitNo','Permit number','text',{w:'half'}),
+    F('notes','Notes','textarea')
+  ]},
+  {key:'stakeholders', kind:'list', listKey:'stakeholders', nav:'Stakeholders', item:'Person', add:'Add another person', q:'Who needs to hear from you, and how do they like to be reached?', help:'Give someone a “contact by” date and you’ll get reminders to reach out using the method they prefer.', fields:[
+    F('name','Name','text',{w:'half'}),
+    F('role','Role','text',{w:'half', ph:'e.g. Facilities manager'}),
+    F('company','Company','text',{w:'half'}),
+    F('preferred','Preferred way to reach them','select',{w:'half', opts:CONTACT_METHODS}),
+    F('phone','Phone','tel',{w:'third'}),
+    F('email','Email','email',{w:'third'}),
+    F('bestTime','Best time to reach','text',{w:'third', ph:'e.g. Mornings'}),
+    F('contactBy','Contact by','date',{w:'third'}),
+    F('notes','Notes','textarea')
+  ]},
+  {key:'concrete', kind:'list', type:'concrete', plans:true, nav:'Concrete', item:'Pad', add:'Add another pad', q:'When is concrete being formed and poured?', help:'Forming and the pour each go on the calendar with their own reminders.', fields:[
+    F('formDate','Forming date','date',{w:'third'}), F('formTime','Forming time','time',{w:'third'}),
+    F('formCrew','Forming crew or sub','text',{w:'third'}),
+    F('date','Pour date','date',{w:'third'}), F('time','Pour time','time',{w:'third'}),
+    F('psi','Mix strength','select',{w:'third', opts:['3,000 psi','4,000 psi','5,000 psi','Other']}),
+    F('supplier','Concrete supplier','text',{w:'half'}),
+    F('yards','Cubic yards','number',{w:'half'}),
+    F('padSize','Pad size','text',{w:'half', ph:'Length × width × thickness'}),
+    F('rebar','Reinforcement','text',{w:'half', ph:'e.g. #5 @ 12" O.C. each way'}),
+    F('pump','Pump truck needed?','yesno',{w:'half'}),
+    F('notes','Notes','textarea')
+  ]},
+  {key:'fuel', kind:'list', type:'fuel', plans:true, nav:'Fuel', item:'Fuel', add:'Add another fuel delivery', q:'What fuel is going in, and when?', help:'For natural gas, use the date the meter gets set or the line goes live.', fields:[
+    F('date','Delivery or hookup date','date',{w:'third'}),
+    F('fuelType','Fuel type','select',{w:'third', opts:['Diesel','Natural gas','Propane (LP)','Bi-fuel (diesel + natural gas)','Gasoline']}),
+    F('quantity','Gallons','number',{w:'third'}),
+    F('tank','Tank capacity (gallons)','number',{w:'third'}),
+    F('supplier','Fuel supplier or utility','text',{w:'third'}),
+    F('supplierContact','Supplier contact','text',{w:'third'}),
+    F('notes','Notes','textarea')
+  ]},
+  {key:'generator', kind:'list', type:'generator', plans:true, nav:'Generator delivery', item:'Generator', add:'Add another generator', q:'When does the generator arrive?', fields:[
+    F('date','Delivery date','date',{w:'third'}), F('time','Time','time',{w:'third'}),
+    F('kw','Size (kW)','number',{w:'third'}),
+    F('makeModel','Make and model','text',{w:'half'}),
+    F('serial','Serial number','text',{w:'half'}),
+    F('vendor','Vendor and PO','text',{w:'half'}),
+    F('tracking','Shipping or tracking info','text',{w:'half'}),
+    F('notes','Notes','textarea')
+  ]},
+  {key:'ats', kind:'list', type:'ats', plans:true, nav:'ATS delivery', item:'Transfer switch', add:'Add another ATS', q:'When do the transfer switches arrive?', fields:[
+    F('date','Delivery date','date',{w:'third'}),
+    F('amps','Amperage','text',{w:'third', ph:'e.g. 400 A'}),
+    F('qty','Quantity','number',{w:'third'}),
+    F('model','Make and model','text',{w:'half'}),
+    F('vendor','Vendor and PO','text',{w:'half'}),
+    F('notes','Notes','textarea')
+  ]},
+  {key:'crane', kind:'list', type:'crane', plans:true, nav:'Crane', item:'Lift', add:'Add another lift', q:'When is the crane lift?', fields:[
+    F('date','Lift date','date',{w:'third'}), F('time','Time','time',{w:'third'}),
+    F('tons','Crane size (tons)','text',{w:'third'}),
+    F('company','Crane company','text',{w:'half'}),
+    F('pkgWeight','Total package weight from submittal (lbs)','text',{w:'half'}),
+    F('liftPlan','Lift plan required?','yesno',{w:'half'}),
+    F('permits','Permits or road closures','text',{w:'half'}),
+    F('notes','Notes','textarea')
+  ]},
+  {key:'inspections', kind:'list', type:'inspection', nav:'Inspections', item:'Inspection', add:'Add a different inspection', noAuto:true, quick:INSPECTIONS, q:'Which inspections does this job need?', help:'Tap each inspection the job requires. Add the date once it’s scheduled; undated ones show up on the project page under “Needs a date.”', fields:[
+    F('inspType','Inspection','text',{w:'half', list:'insp-list'}),
+    F('status','Status','select',{w:'half', opts:['Not scheduled','Scheduled','Passed','Failed, needs reinspection']}),
+    F('date','Date','date',{w:'third'}), F('time','Time','time',{w:'third'}),
+    F('permitNo','Permit number','text',{w:'third'}),
+    F('ahj','Inspector or AHJ','text'),
+    F('notes','Notes','textarea')
+  ]},
+  {key:'startup', kind:'list', type:'startup', nav:'Startup', item:'Startup', add:'Add another startup', q:'When is startup and commissioning?', fields:[
+    F('date','Startup date','date',{w:'third'}), F('time','Time','time',{w:'third'}),
+    F('loadBank','Load bank test?','yesno',{w:'third'}),
+    F('tech','Startup technician or company','text',{w:'half'}),
+    F('witnesses','Who needs to witness','text',{w:'half', ph:'Owner, engineer, AHJ'}),
+    F('training','Owner training scheduled?','yesno',{w:'half'}),
+    F('notes','Notes','textarea')
+  ]},
+  {key:'other', kind:'list', type:'other', nav:'Anything else', item:'Item', add:'Add another item', q:'Is there anything else with a date?', help:'Utility outages, shutdowns, punch walks, anything you want reminders for. Leave it blank if not.', fields:[
+    F('title','What is it?'),
+    F('date','Date','date',{w:'third'}), F('time','Time','time',{w:'third'}),
+    F('notes','Notes','textarea')
+  ]},
+  {key:'review', kind:'review', nav:'Review', q:'Here’s the schedule. Anything look off?'}
+];
+const STEP_BY_TYPE = {};
+STEPS.forEach(s => { if(s.type) STEP_BY_TYPE[s.type] = s; });
+STEP_BY_TYPE.stakeholder = STEPS.find(s => s.key==='stakeholders');
+STEP_BY_TYPE.forming = STEP_BY_TYPE.concrete;
+STEP_BY_TYPE.fdep = STEP_BY_TYPE.fuel;
+
+/* FDEP storage tank tracking (inside each fuel block) */
+const FDEP_FIELDS = [
+  F('fdepInstallDate','Tank installation date','date',{w:'third'}),
+  F('fdepInspDate','FDEP inspection date','date',{w:'third'}),
+  F('fdepInspTime','Inspection time','time',{w:'third'}),
+  F('fdepContact','County storage tank inspector','text',{w:'half'}),
+  F('fdepFacility','FDEP facility or registration number','text',{w:'half'}),
+  F('fdepStatus','FDEP status','select',{w:'half', opts:['Not started','Installation notice sent','Tank registered','Inspection scheduled','Inspection passed']})
+];
+const PREP_FDEP = {
+  notice:['Written (email) notice to the county storage tank inspector, 30 to 45 days before installation','Tank registered with FDEP (new facilities: at least 30 days before installation)','Tank and piping on FDEP’s approved equipment list'],
+  confirm:['Email the inspector 48 to 72 hours before installation to confirm the date'],
+  install:['Check the tank for damage after delivery, before it goes into service','Inspector confirmed for the install'],
+  inspect:['Registration and installation paperwork on hand','Tank, piping and spill containment accessible','Someone authorized for the facility on site']
+};
+const toNum = v => { const n = parseFloat(String(v == null ? '' : v).replace(/,/g,'')); return isFinite(n) ? n : null; };
+const fmtNum = n => Number(n).toLocaleString('en-US');
+function fdepThreshold(){ const n = toNum(S.settings.fdepThreshold); return n && n > 0 ? n : 549; }
+function fdepApplies(m){ return m.fuelType !== 'Natural gas' && m.fuelType !== 'Propane (LP)'; }
+function fdepRequired(m){ const cap = toNum(m.tank); return !!m && m.type === 'fuel' && fdepApplies(m) && cap != null && cap >= fdepThreshold(); }
+const DERIVED_DONE = {form_:'formDone', fdepn_:'fdepNoticeDone', fdepc_:'fdepConfirmDone', fdept_:'fdepInstallDone', fdepi_:'fdepInspDone'};
+
+const PREP = {
+  start:['Permit posted on site','Stakeholders told the start date','Site access and laydown area confirmed'],
+  turnover:['Agenda sent to attendees','Room or meeting link confirmed','Plans, schedule and submittals ready to share'],
+  plans:['Check for reviewer comments','Respond to anything open','Confirm the permit is ready to issue'],
+  stakeholder:['Confirm their contact info is current','Prepare the update you need to share'],
+  forming:['Pad location and size checked against the plans','Form lumber, stakes and rebar on site','Underground electrical in place and inspected','Slab inspection requested for before the pour'],
+  concrete:['Forms and rebar ready','Slab inspection passed','Supplier, mix and pump truck confirmed','Weather forecast checked'],
+  fuel:['Tank set and inspected','Fuel type and gallons confirmed with supplier','Access for the fuel truck'],
+  generator:['Pad cured (about 7 days after the pour)','Crane or offload equipment scheduled','Delivery route and site access confirmed','Receiving contact on site'],
+  ats:['Install location and clearances confirmed','Receiving contact on site'],
+  crane:['Lift plan approved','Permits and road closures in place','Ground conditions and rigging checked','Stakeholders told about the lift'],
+  inspection:['Work complete and ready to inspect','Permit card and approved plans on site','Inspection time confirmed with the AHJ'],
+  startup:['Fuel delivered','ATS and controls wiring complete','Load bank on site, if needed','Witnesses confirmed']
+};
+
+/* ---------- State ---------- */
+const DEFAULT_SETTINGS = {email:'', offsets:[30,14,7,2], remindTime:'08:00', includeStakeholders:true, fdepThreshold:549};
+const t0 = todayISO();
+const S = {
+  projects:{}, settings:clone(DEFAULT_SETTINGS),
+  view:'today', projectId:null,
+  calMonth:t0.slice(0,7), calSel:t0, calRem:true,
+  wiz:null, storage:'loading', evIndex:{}
+};
+let dbRef = null, profileRef = null, projectsCol = null, unsubs = [];
+const mainEl = $('#main'), wizEl = $('#wizard'), modalEl = $('#modal'), toastEl = $('#toast');
+
+/* ---------- Derived schedule ---------- */
+function finishDate(p){
+  const n = Number(p.durationValue);
+  if(!parseISO(p.startDate) || !n || n < 0) return null;
+  if(p.durationUnit === 'months'){ const d = parseISO(p.startDate); d.setMonth(d.getMonth()+Math.round(n)); return toISO(d); }
+  return addDays(p.startDate, Math.round(n * (p.durationUnit==='weeks' ? 7 : 1)));
+}
+function contactPhrase(m){
+  const map = {'Email':'by email','Phone call':'by phone','Text message':'by text','Microsoft Teams':'on Teams','In person':'in person','Mail / letter':'by mail'};
+  return map[m] ? ' ' + map[m] : '';
+}
+function msTitle(m){
+  switch(m.type){
+    case 'inspection': { const t = (m.inspType||'').trim(); if(!t) return 'Inspection'; return /(inspection|test)$/i.test(t) ? t : t + ' inspection'; }
+    case 'fuel': { const ft = m.fuelType || ''; if(ft === 'Natural gas') return 'Natural gas hookup'; return ft ? ft.replace(/ \(.*\)$/,'') + ' delivery' : 'Fuel delivery'; }
+    case 'generator': return 'Generator delivery' + (m.kw ? ` (${m.kw} kW)` : '');
+    case 'other': return (m.title||'').trim() || 'Other work';
+    default: return (TYPES[m.type]||TYPES.other).label;
+  }
+}
+function projectEvents(p){
+  const out = [];
+  const mk = e => { e.project = p; e.key = p.id + '|' + e.id; e.inactive = p.status === 'complete'; out.push(e); };
+  if(parseISO(p.startDate)) mk({id:'start', type:'start', date:p.startDate, title:'Project start', done:!!p.startDone});
+  const fin = finishDate(p);
+  if(fin) mk({id:'finish', type:'finish', date:fin, title:'Estimated completion', noRemind:true});
+  (p.milestones||[]).forEach(m => {
+    if(parseISO(m.date)) mk({id:m.id, type:m.type, date:m.date, time:m.time, title:msTitle(m), src:m, done:!!m.done});
+    if(m.type === 'concrete' && parseISO(m.formDate)) mk({id:'form_'+m.id, type:'forming', date:m.formDate, time:m.formTime, title:'Concrete forming', src:m, done:!!m.formDone});
+    if(fdepRequired(m)){
+      const cap = fmtNum(toNum(m.tank));
+      if(parseISO(m.fdepInstallDate)){
+        mk({id:'fdepn_'+m.id, type:'fdep', date:addDays(m.fdepInstallDate,-30), title:'FDEP installation notice due', note:`Send 30 to 45 days before the ${cap} gallon tank is installed on ${fmtShort(m.fdepInstallDate)}.`, prep:PREP_FDEP.notice, src:m, done:!!m.fdepNoticeDone});
+        mk({id:'fdepc_'+m.id, type:'fdep', date:addDays(m.fdepInstallDate,-3), title:'Confirm tank install with FDEP inspector', note:`Confirm 48 to 72 hours before the tank is installed on ${fmtShort(m.fdepInstallDate)}.`, prep:PREP_FDEP.confirm, src:m, done:!!m.fdepConfirmDone});
+        mk({id:'fdept_'+m.id, type:'fdep', date:m.fdepInstallDate, title:'Fuel tank installation', note:`${cap} gallon tank.`, prep:PREP_FDEP.install, src:m, done:!!m.fdepInstallDone});
+      }
+      if(parseISO(m.fdepInspDate)) mk({id:'fdepi_'+m.id, type:'fdep', date:m.fdepInspDate, time:m.fdepInspTime, title:'FDEP tank inspection', prep:PREP_FDEP.inspect, src:m, done:!!m.fdepInspDone});
+    }
+  });
+  (p.stakeholders||[]).forEach(s => { if(parseISO(s.contactBy)) mk({id:'sh_'+s.id, type:'stakeholder', date:s.contactBy, title:`Contact ${(s.name||'').trim() || 'stakeholder'}${contactPhrase(s.preferred)}`, src:s, done:!!s.contacted}); });
+  return out;
+}
+const byDate = (a,b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (a.time||'99') < (b.time||'99') ? -1 : 1);
+function allEvents(){ return Object.values(S.projects).flatMap(projectEvents); }
+function activeProjects(){ return Object.values(S.projects).filter(p => p.status !== 'complete'); }
+function offsets(){ return [...new Set((S.settings.offsets||[]).map(Number).filter(n => n > 0 && n < 400))].sort((a,b) => b-a); }
+
+function remState(ev){
+  const t = todayISO();
+  const d = diffDays(t, ev.date);
+  const log = ev.project.reminderLog || {};
+  const off = offsets();
+  const noRemind = !!(ev.noRemind || ev.done || ev.inactive);
+  const ticks = off.map(o => {
+    const rd = addDays(ev.date, -o), h = log[ev.id+'|'+o];
+    let st = 'upcoming';
+    if(h) st = h.s === 'dismissed' ? 'dismissed' : 'sent';
+    else if(d < 0 || o >= d) st = 'passed';
+    return {o, rd, st};
+  });
+  let due = null;
+  if(!noRemind && d >= 0){
+    const reached = ticks.filter(x => x.o >= d);
+    const latest = reached[reached.length-1];
+    if(latest && !log[ev.id+'|'+latest.o]) due = latest;
+  }
+  const next = (!noRemind && d >= 0) ? (ticks.filter(x => x.o < d)[0] || null) : null;
+  return {d, ticks, due, next, noRemind};
+}
+function dueList(){ return allEvents().map(ev => ({ev, rs:remState(ev)})).filter(x => x.rs.due).sort((a,b) => byDate(a.ev,b.ev)); }
+
+function projectWarnings(p){
+  const w = [], t = todayISO();
+  const ms = (p.milestones||[]).filter(m => parseISO(m.date));
+  const pours = ms.filter(m => m.type === 'concrete');
+  ms.filter(m => m.type==='generator' || m.type==='crane').forEach(m => {
+    pours.forEach(pr => {
+      const gap = diffDays(pr.date, m.date);
+      if(gap >= 0 && gap < 7) w.push({ids:[m.id], text:`${msTitle(m)} (${fmtShort(m.date)}) is ${gap===0 ? 'the same day as' : plural(gap,'day')+' after'} the concrete pour. Pads usually need about 7 days to cure before equipment is set. Check with your engineer.`});
+    });
+  });
+  (p.milestones||[]).filter(m => m.type === 'concrete' && parseISO(m.formDate) && parseISO(m.date) && m.formDate >= m.date).forEach(m => {
+    w.push({ids:[m.id], text:`Forming (${fmtShort(m.formDate)}) isn’t scheduled before the pour (${fmtShort(m.date)}).`});
+  });
+  if(p.plans && p.plans.data){
+    const cids = (p.milestones||[]).filter(m => m.type === 'concrete').map(m => m.id);
+    padChecks(p.plans.data).filter(c => c.ok === false).forEach(c => w.push({ids:cids, text:c.text}));
+    const nc = (p.plans.data.conflicts || []).length;
+    if(nc) w.push({ids:[], text:`The plan review found ${plural(nc,'discrepancy','discrepancies')} between the documents. See the Plans section on the project page.`});
+  }
+  (p.milestones||[]).filter(fdepRequired).forEach(m => {
+    const cap = fmtNum(toNum(m.tank));
+    if(!parseISO(m.fdepInstallDate)) w.push({ids:[m.id], text:`The ${cap} gallon fuel tank needs FDEP notices and an inspection. Add the tank installation date on the Fuel step to get those reminders.`});
+    else { const due = addDays(m.fdepInstallDate, -30); if(!m.fdepNoticeDone && due < t && m.fdepInstallDate >= t) w.push({ids:[m.id], text:`The FDEP installation notice for the ${cap} gallon tank was due ${fmtShort(due)}, 30 days before installation.`}); }
+  });
+  const fuels = ms.filter(m => m.type === 'fuel').sort(byDate);
+  ms.filter(m => m.type === 'startup').forEach(su => {
+    if(!fuels.length) w.push({ids:[su.id], text:`Startup is set for ${fmtShort(su.date)}, but no fuel delivery or hookup is scheduled.`});
+    else if(fuels[0].date > su.date) w.push({ids:[su.id], text:`Startup (${fmtShort(su.date)}) comes before the first fuel date (${fmtShort(fuels[0].date)}).`});
+  });
+  if(parseISO(p.startDate)){
+    const d = diffDays(t, p.startDate);
+    const open = (p.milestones||[]).filter(m => m.type==='plans' && m.status && m.status !== 'Approved');
+    if(d >= 0 && d <= 14 && open.length) w.push({ids:open.map(m=>m.id), text:`Work starts ${whenPhrase(d)} and the plans aren’t marked approved yet.`});
+    const fin = finishDate(p);
+    ms.forEach(m => {
+      if(['turnover','plans'].includes(m.type)) return;
+      if(m.date < p.startDate) w.push({ids:[m.id], text:`${msTitle(m)} (${fmtShort(m.date)}) is before the project start date.`});
+      else if(fin && m.date > fin) w.push({ids:[m.id], text:`${msTitle(m)} (${fmtShort(m.date)}) is after the estimated completion date.`});
+    });
+    (p.milestones||[]).filter(m => m.type === 'concrete' && parseISO(m.formDate) && m.formDate < p.startDate).forEach(m => {
+      w.push({ids:[m.id], text:`Concrete forming (${fmtShort(m.formDate)}) is before the project start date.`});
+    });
+  }
+  return w;
+}
+
+function summaryParts(ev){
+  const step = STEP_BY_TYPE[ev.type], src = ev.src;
+  if(!step || !src) return [];
+  const skip = ['date','time','notes','title','inspType','name','contactBy','email','phone'];
+  const parts = [];
+  if(ev.type === 'stakeholder'){
+    if(src.role || src.company) parts.push([src.role, src.company].filter(Boolean).join(', '));
+    const c = preferredContact(src); if(c) parts.push(c);
+    return parts;
+  }
+  if(ev.type === 'forming'){
+    if(src.formCrew) parts.push(src.formCrew);
+    if(src.padSize) parts.push(src.padSize);
+    parts.push(parseISO(src.date) ? `Pour ${fmtShort(src.date)}` : 'Pour date not set');
+    return parts;
+  }
+  if(ev.type === 'fdep'){
+    if(toNum(src.tank)) parts.push(`${fmtNum(toNum(src.tank))} gal tank`);
+    if(src.fdepContact) parts.push(src.fdepContact);
+    if(src.fdepStatus) parts.push(src.fdepStatus);
+    return parts;
+  }
+  if(ev.type === 'crane'){
+    if(src.tons) parts.push(`${src.tons}-ton crane`);
+    if(src.company) parts.push(src.company);
+    const pc = packageCalc(src);
+    if(pc.lift) parts.push(`Lift weight ${fmtNum(pc.lift)} lbs`);
+    return parts;
+  }
+  if(ev.type === 'fuel' && fdepRequired(src)) parts.push('FDEP inspections required');
+  if(ev.type === 'concrete') skip.push('formDate','formTime','formCrew');
+  step.fields.forEach(f => {
+    if(skip.includes(f.k) || parts.length >= 3) return;
+    const v = src[f.k]; if(v == null || String(v).trim() === '') return;
+    if(f.k === 'kw') return;
+    if(f.k === 'status' || f.k === 'fuelType') parts.push(String(v));
+    else if(f.k === 'yards') parts.push(`${v} yd³`);
+    else if(f.k === 'quantity') parts.push(`${v} gal`);
+    else if(f.k === 'tank') parts.push(`${v} gal tank`);
+    else if(f.k === 'qty') parts.push(`Qty ${v}`);
+    else if(f.k === 'tons') parts.push(`${v}-ton crane`);
+    else if(f.t === 'date') parts.push(`${f.label}: ${fmtShort(v)}`);
+    else if(f.t === 'yesno') parts.push(`${f.label.replace(/\?$/,'')}: ${v}`);
+    else parts.push(String(v));
+  });
+  return parts;
+}
+function preferredContact(s){
+  if(s.preferred === 'Email') return s.email || '';
+  if(s.preferred === 'Phone call' || s.preferred === 'Text message') return s.phone || '';
+  return s.phone || s.email || '';
+}
+function stakeLine(s){
+  const who = [s.name, s.role].filter(Boolean).join(', ') + (s.company ? ` (${s.company})` : '');
+  const bits = [];
+  if(s.preferred) bits.push('prefers ' + s.preferred.toLowerCase().replace('microsoft teams','Microsoft Teams'));
+  const c = preferredContact(s); if(c) bits.push(c);
+  if(s.bestTime) bits.push('best time: ' + s.bestTime);
+  return who + (bits.length ? ', ' + bits.join(', ') : '');
+}
+
+/* ---------- Email text ---------- */
+function detailLines(ev){
+  const p = ev.project, L = [];
+  L.push(`Project: ${p.name}${p.projectNumber ? ` (#${p.projectNumber})` : ''}`);
+  if(p.client) L.push(`Client: ${p.client}`);
+  if(p.siteAddress) L.push(`Site: ${p.siteAddress}`);
+  L.push(`Date: ${fmtLong(ev.date)}${ev.time ? ' at ' + fmtTime(ev.time) : ''}`);
+  if(ev.note) L.push(ev.note);
+  if(ev.type === 'crane' && ev.src){
+    const pc = packageCalc(ev.src);
+    if(pc.base) L.push(`Total package weight from the submittal: ${fmtNum(pc.base)} lbs${pc.basis ? ` (${pc.basis})` : ''}`, `Lift weight (total package weight × 1.1): ${fmtNum(pc.lift)} lbs`);
+  }
+  const step = STEP_BY_TYPE[ev.type], src = ev.src;
+  if(src && (ev.type === 'fuel' || ev.type === 'fdep') && fdepRequired(src)) L.push(`FDEP storage tank inspections: required (${fmtNum(toNum(src.tank))} gallons; flagged at ${fmtNum(fdepThreshold())} gallons and up)`);
+  if(step && src){
+    const skipKeys = ev.type === 'forming' ? ['formDate','formTime','title'] : ev.type === 'fdep' ? ['title'] : ['date','time','contactBy','title'];
+    const fields = step.fields.concat((ev.type === 'fuel' || ev.type === 'fdep') && fdepRequired(src) ? FDEP_FIELDS : []);
+    const det = fields.filter(f => !skipKeys.includes(f.k) && src[f.k] != null && String(src[f.k]).trim() !== '')
+      .map(f => `  ${f.label}: ${f.t==='date' ? fmtShort(src[f.k]) : f.t==='time' ? fmtTime(src[f.k]) : src[f.k]}`);
+    if(det.length){ L.push('', 'Details'); L.push(...det); }
+  }
+  const prep = ev.prep || PREP[ev.type];
+  if(prep && prep.length){ L.push('', 'Before this date'); prep.forEach(x => L.push('  [ ] ' + x)); }
+  const warns = src ? projectWarnings(p).filter(w => w.ids.includes(src.id)) : [];
+  if(warns.length){ L.push('', 'Schedule check'); warns.forEach(w => L.push('  ! ' + w.text)); }
+  if(S.settings.includeStakeholders && ev.type !== 'stakeholder'){
+    const sh = (p.stakeholders||[]).filter(s => (s.name||'').trim());
+    if(sh.length){ L.push('', 'Stakeholders to keep informed'); sh.forEach(s => L.push('  - ' + stakeLine(s))); }
+  }
+  return L;
+}
+function emailFor(ev, rs){
+  const p = ev.project;
+  const subject = `${ev.title} ${whenPhrase(rs.d)}: ${p.name} (${fmtShort(ev.date)})`;
+  const L = [`Reminder: ${ev.title} is ${whenPhrase(rs.d)}.`, '', ...detailLines(ev), '', `Sent from Lead Time${rs.due ? `, ${offLong(rs.due.o)} reminder` : ''}.`];
+  return {subject, body:L.join('\n')};
+}
+function digestEmail(){
+  const t = todayISO(), due = dueList();
+  const soon = allEvents().filter(ev => !ev.inactive && !ev.done && ev.date >= t && diffDays(t, ev.date) <= 7).sort(byDate);
+  const L = [`Project reminders for ${fmtLong(t)}`, ''];
+  if(due.length){
+    L.push(`Reminders to act on (${due.length})`);
+    due.forEach(({ev, rs}) => {
+      L.push('', `- ${ev.title}, ${whenPhrase(rs.d)} (${fmtShort(ev.date)}${ev.time ? ' at ' + fmtTime(ev.time) : ''})`, `  ${ev.project.name}${ev.project.siteAddress ? ', ' + ev.project.siteAddress : ''}`);
+      summaryParts(ev).forEach(x => L.push('  ' + x));
+    });
+  } else L.push('No reminders are due today.');
+  L.push('', 'Happening in the next 7 days');
+  if(soon.length) soon.forEach(ev => L.push(`  ${fmtShort(ev.date)}${ev.time ? ' ' + fmtTime(ev.time) : ''}: ${ev.title} (${ev.project.name})`));
+  else L.push('  Nothing scheduled.');
+  L.push('', 'Sent from Lead Time.');
+  return {subject:`Project reminders for ${fmtShort(t)}: ${due.length ? plural(due.length,'item') + ' to act on' : 'all caught up'}`, body:L.join('\n')};
+}
+function mailto(em){
+  const to = (S.settings.email||'').replace(/[\s,;]+/g,'');
+  return `mailto:${to}?subject=${encodeURIComponent(em.subject)}&body=${encodeURIComponent(em.body.replace(/\n/g,'\r\n'))}`;
+}
+
+/* ---------- Storage ---------- */
+const LS_KEY = 'leadtime.v1';
+function lsRead(){ try{ const r = localStorage.getItem(LS_KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function lsWrite(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({projects:S.projects, settings:S.settings, mode:S.storage})); }catch(e){} }
+const queues = {};
+function enqueue(key, fn){
+  const run = () => fn().catch(e => (e && e.code === 'unavailable') ? new Promise(r => setTimeout(r, 400 + Math.random()*600)).then(fn) : Promise.reject(e));
+  const next = (queues[key] || Promise.resolve()).then(run).catch(onWriteError);
+  queues[key] = next; return next;
+}
+function onWriteError(e){
+  const code = e && e.code;
+  if(code === 'quota_exceeded') toast('Storage is full. Delete an old project to keep saving to your account.');
+  else if(code === 'invalid_argument' || code === 'revoked' || code === 'not_granted'){
+    goLocal();
+    toast('Couldn’t save to your account, so changes are being kept in this browser for now.');
+  } else toast('A change didn’t save. Try again in a moment.');
+}
+function goLocal(){ unsubs.forEach(u => { try{ u(); }catch(e){} }); unsubs = []; projectsCol = null; profileRef = null; S.storage = 'local'; lsWrite(); }
+function sameProject(a, b){ const x = clone(a), y = clone(b); delete x.updatedAt; delete y.updatedAt; return JSON.stringify(x) === JSON.stringify(y); }
+function writeProject(p, opts){
+  opts = opts || {};
+  p.updatedAt = Date.now();
+  S.projects[p.id] = p; lsWrite();
+  if(opts.delay) setTimeout(render, opts.delay); else render();
+  if(projectsCol){ const body = clone(p); enqueue('p:'+p.id, () => projectsCol.doc(p.id).set(body)); }
+}
+function removeProject(id){
+  delete S.projects[id]; lsWrite(); render();
+  if(projectsCol) enqueue('p:'+id, () => projectsCol.doc(id).delete());
+}
+function writeSettings(){
+  lsWrite(); render();
+  if(profileRef){ const body = clone(S.settings); enqueue('settings', () => profileRef.set(body)); }
+}
+async function useCap(name){
+  const inClaude = !!(window.claude && typeof window.claude.use === 'function');
+  if(!inClaude) return name === 'sample' && getApiKey() ? apiSample : null;
+  try{ return await window.claude.use(name); }catch(e){ return null; }
+}
+
+/* ---------- Plan review on your own website (outside Claude) ----------
+   Uses your Anthropic API key, saved only in this browser's storage. Never put the key in the code. */
+const API_KEY_LS = 'leadtime.apiKey';
+const API_MODEL = 'claude-sonnet-5-5';
+function getApiKey(){ try{ return localStorage.getItem(API_KEY_LS) || ''; }catch(e){ return ''; } }
+function setApiKey(v){ try{ if(v) localStorage.setItem(API_KEY_LS, v); else localStorage.removeItem(API_KEY_LS); return true; }catch(e){ return false; } }
+function blobToBase64(blob){ return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = () => rej(r.error); r.readAsDataURL(blob); }); }
+function apiError(code, message){ const e = new Error(message || code); e.code = code; return e; }
+const apiSample = {
+  async limits(){ return {images:{maxCount:10, maxInputBytes:3500000, mediaTypes:['image/jpeg','image/png','image/webp','image/gif']}}; },
+  async json(prompt, opts){
+    opts = opts || {};
+    const key = getApiKey(); if(!key) throw apiError('api_key');
+    const content = [];
+    for(const img of (opts.images || [])){
+      const type = /^image\/(jpeg|png|webp|gif)$/.test(img.type || '') ? img.type : 'image/jpeg';
+      content.push({type:'image', source:{type:'base64', media_type:type, data:await blobToBase64(img)}});
+    }
+    content.push({type:'text', text:prompt});
+    let res;
+    try{
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST', signal:opts.signal,
+        headers:{'content-type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:API_MODEL, max_tokens:8000, system:'Reply with only a single JSON object: no other text and no code fences.', messages:[{role:'user', content}]})
+      });
+    }catch(e){ throw apiError(e && e.name === 'AbortError' ? 'cancelled' : 'network'); }
+    if(!res.ok){
+      let msg = ''; try{ const j = await res.json(); msg = (j && j.error && j.error.message) || ''; }catch(e){}
+      throw apiError(res.status === 401 || res.status === 403 ? 'api_key' : (res.status === 429 || res.status === 529) ? 'rate_limited' : res.status === 413 ? 'prompt_too_large' : 'api_error', msg);
+    }
+    const data = await res.json();
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    const a = text.indexOf('{'), b = text.lastIndexOf('}');
+    if(a < 0 || b <= a) throw apiError('invalid_json');
+    try{ return JSON.parse(text.slice(a, b + 1)); }catch(e){ throw apiError('invalid_json'); }
+  }
+};
+async function shrinkImage(blob, maxBytes){
+  if(!blob || blob.size <= maxBytes) return blob;
+  try{
+    const bmp = await createImageBitmap(blob), sc = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+    const cv = document.createElement('canvas'); cv.width = Math.round(bmp.width * sc); cv.height = Math.round(bmp.height * sc);
+    cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+    return await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.85));
+  }catch(e){ return blob; }
+}
+async function initStorage(){
+  const cached = lsRead();
+  const cacheWasLocal = !cached || cached.mode !== 'db';
+  if(cached){ S.projects = cached.projects || {}; S.settings = Object.assign(clone(DEFAULT_SETTINGS), cached.settings||{}); }
+  render();
+  const [db, user] = await Promise.all([useCap('db'), useCap('user')]);
+  let id = null;
+  if(user){ try{ id = await user.id(); }catch(e){ id = null; } }
+  if(!db || !id){ S.storage = 'local'; lsWrite(); render(); return; }
+  dbRef = db;
+  try{
+    profileRef = db.doc(`data/users/${id}/profile`);
+    projectsCol = profileRef.collection('projects');
+    const [snap, prof] = await Promise.all([projectsCol.get(), profileRef.get()]);
+    if(snap.empty && cacheWasLocal && Object.keys(S.projects).length){
+      for(const p of Object.values(S.projects)) await projectsCol.doc(p.id).set(clone(p));
+    }
+    if(!prof.exists && cacheWasLocal && cached && cached.settings) await profileRef.set(clone(S.settings));
+  }catch(e){ goLocal(); render(); return; }
+  S.storage = 'db'; lsWrite(); render();
+  unsubs.push(projectsCol.onSnapshot(snap => {
+    const next = {};
+    snap.docs.forEach(d => { if(d.exists){ const v = clone(d.data()); v.id = d.id; next[d.id] = v; } });
+    S.projects = next; lsWrite(); renderSoft();
+  }, () => { goLocal(); renderSoft(); }));
+  unsubs.push(profileRef.onSnapshot(s => {
+    if(s.exists){ S.settings = Object.assign(clone(DEFAULT_SETTINGS), clone(s.data())); lsWrite(); renderSoft(); }
+  }, () => {}));
+}
+
+/* ---------- Rendering ---------- */
+let pendingRender = false;
+function typingInMain(){ const a = document.activeElement; return a && mainEl.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName); }
+function renderSoft(){ if(typingInMain()){ pendingRender = true; return; } render(); }
+document.addEventListener('focusout', () => setTimeout(() => { if(pendingRender && !typingInMain()){ pendingRender = false; render(); } }, 0));
+
+function render(){
+  S.evIndex = {};
+  allEvents().forEach(e => { S.evIndex[e.key] = e; });
+  if(S.view === 'project' && !S.projects[S.projectId]) S.view = 'projects';
+  document.querySelectorAll('.tab').forEach(b => {
+    const on = b.dataset.view === S.view || (S.view === 'project' && b.dataset.view === 'projects');
+    if(on) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current');
+  });
+  const views = {today:renderToday, calendar:renderCalendar, projects:renderProjects, project:renderProject, settings:renderSettings};
+  mainEl.innerHTML = (views[S.view] || renderToday)();
+}
+function go(view){ S.view = view; render(); window.scrollTo(0,0); }
+
+function rulerHTML(ev, rs){
+  const off = offsets(); if(!off.length) return '';
+  const max = Math.max(30, off[0]);
+  const pos = o => ((1 - Math.sqrt(Math.max(0, Math.min(o, max))/max)) * 100).toFixed(2);
+  const nowPos = rs.d >= 0 ? pos(rs.d) : 100;
+  let h = `<div class="ruler" style="--cat:${catColor(ev.type)}" aria-hidden="true"><div class="base"></div><div class="fill" style="width:${nowPos}%"></div>`;
+  rs.ticks.forEach(x => {
+    const st = (rs.due && rs.due.o === x.o) ? 'due' : x.st;
+    h += `<div class="tk ${st}" style="left:${pos(x.o)}%" title="${esc(offLong(x.o))} before, ${esc(fmtShort(x.rd))}"><i>${st==='sent' ? CHECK : ''}</i><span>${offShort(x.o)}</span></div>`;
+  });
+  h += `<div class="tk ev" style="left:100%"><i></i><span>Day of</span></div>`;
+  if(rs.d >= 0) h += `<div class="now" style="left:${nowPos}%"></div>`;
+  h += `</div>`;
+  const sent = rs.ticks.filter(x => x.st === 'sent').map(x => offLong(x.o));
+  h += `<p class="sr-only">Reminders: ${sent.length ? 'sent ' + sent.join(', ') + '. ' : ''}${rs.next ? 'Next on ' + fmtShort(rs.next.rd) + '.' : 'No more scheduled.'}</p>`;
+  return h;
+}
+function editTarget(ev){
+  if(ev.type === 'start' || ev.type === 'finish') return {step:'schedule', item:''};
+  if(ev.type === 'stakeholder') return {step:'stakeholders', item:ev.src.id};
+  const s = STEP_BY_TYPE[ev.type];
+  return {step: s ? s.key : 'job', item: ev.src ? ev.src.id : ''};
+}
+function editBtn(ev, label){
+  const t = editTarget(ev);
+  return `<button class="btn btn-sm" data-act="edit-step" data-pid="${esc(ev.project.id)}" data-step="${t.step}" data-item="${esc(t.item)}" aria-label="${esc((label||'Edit') + ' ' + ev.title)}">${esc(label||'Edit')}</button>`;
+}
+function remCard(ev, rs){
+  const em = emailFor(ev, rs), p = ev.project;
+  const kind = ev.type === 'fuel' ? 'Fuel' : (TYPES[ev.type]||TYPES.other).label;
+  const t = editTarget(ev);
+  return `<article class="rem" style="--cat:${catColor(ev.type)}">
+    <div class="rem-top">
+      <div>
+        <span class="kind">${esc(kind)}</span>
+        <h3><button data-act="edit-step" data-pid="${esc(p.id)}" data-step="${t.step}" data-item="${esc(t.item)}">${esc(ev.title)}</button></h3>
+        <div class="meta"><span>${esc(p.name)}</span><span class="tnum">${esc(fmtShort(ev.date))}${ev.time ? ', ' + esc(fmtTime(ev.time)) : ''}</span>${summaryParts(ev).slice(0,2).map(x => `<span>${esc(x)}</span>`).join('')}</div>
+      </div>
+      <div class="when tnum">${esc(relDay(rs.d))}<small>${esc(offLong(rs.due.o))} reminder</small></div>
+    </div>
+    ${rulerHTML(ev, rs)}
+    <div class="rem-actions">
+      <a class="btn btn-signal" href="${esc(mailto(em))}" target="_blank" rel="noopener" data-act="rem-email" data-key="${esc(ev.key)}" data-off="${rs.due.o}">Email me</a>
+      <button class="btn" data-act="rem-preview" data-key="${esc(ev.key)}">Preview email</button>
+      <button class="btn btn-ghost" data-act="rem-dismiss" data-key="${esc(ev.key)}" data-off="${rs.due.o}">Dismiss</button>
+    </div>
+  </article>`;
+}
+function evRow(ev, opts){
+  opts = opts || {};
+  const parts = [];
+  if(opts.showJob) parts.push(ev.project.name);
+  if(ev.time) parts.push(fmtTime(ev.time));
+  parts.push(...summaryParts(ev).slice(0, opts.showJob ? 1 : 2));
+  return `<div class="row ${ev.done ? 'is-done' : ''}" style="--cat:${catColor(ev.type)}">
+    <div class="row-bar"></div>
+    <div><div class="row-title">${esc(ev.title)}</div><div class="row-sub">${parts.map(x => `<span>${esc(x)}</span>`).join('')}</div></div>
+    <div class="row-actions">${ev.type === 'finish' ? '' : editBtn(ev,'Open')}</div>
+  </div>`;
+}
+function warnBox(list, withJob){
+  if(!list.length) return '';
+  return `<section class="warn-box" aria-label="Schedule checks"><h2>Schedule ${list.length === 1 ? 'check' : 'checks'}</h2><ul>${list.map(w => `<li>${esc(w.text)}${withJob ? ` <small>${esc(w.p.name)}</small>` : ''}</li>`).join('')}</ul></section>`;
+}
+
+function renderEmpty(){
+  const demoEv = {id:'demo', type:'crane', date:addDays(todayISO(), 10), project:{reminderLog:{'demo|30':{s:'sent'}}}};
+  const rs = remState(demoEv); rs.due = rs.ticks.find(x => x.o === 14) || null;
+  return `<section class="hero">
+    <h1>Every date on the job, with reminders before each one.</h1>
+    <p>Answer a few questions about a project: the turnover meeting, plans review, stakeholders, concrete forming and pour, fuel, generator and ATS deliveries, the crane, inspections, and startup. Lead Time reminds you ${esc(offsets().map(offLong).join(', ').replace(/, ([^,]*)$/, ' and $1'))} before each one, with the details ready to email to yourself.</p>
+    <div class="btns"><button class="btn btn-primary" data-act="new-project">Set up a project</button><button class="btn" data-act="example">Try an example project</button></div>
+    <div class="demo">
+      <p class="lbl">How a reminder track reads: the 1-month reminder went out, the 2-week one is ready, and the crane lift is 10 days away.</p>
+      ${rulerHTML(demoEv, rs)}
+    </div>
+  </section>`;
+}
+
+function renderToday(){
+  if(!Object.keys(S.projects).length) return renderEmpty();
+  const t = todayISO();
+  const due = dueList();
+  const soon = allEvents().filter(ev => !ev.inactive && ev.date >= t && diffDays(t, ev.date) <= 21).sort(byDate);
+  const warns = activeProjects().flatMap(p => projectWarnings(p).map(w => Object.assign({p}, w)));
+  const nextRem = allEvents().map(ev => ({ev, rs:remState(ev)})).filter(x => x.rs.next).sort((a,b) => a.rs.next.rd < b.rs.next.rd ? -1 : 1)[0];
+  const dateTitle = new Date().toLocaleDateString(LOC, {weekday:'long', month:'long', day:'numeric'});
+  const remPart = due.length ? `${plural(due.length,'reminder is','reminders are')} ready to send` : 'You’re caught up on reminders';
+  const soonPart = soon.length ? `${plural(soon.length,'date is','dates are')} coming up in the next three weeks` : 'nothing is scheduled for the next three weeks';
+  const summary = `${remPart}, and ${soonPart}.`;
+  const dg = digestEmail();
+  let h = `<div class="page-h"><div><h1>${esc(dateTitle)}</h1><p>${esc(summary)}</p></div>
+    <div class="btns"><a class="btn" href="${esc(mailto(dg))}" target="_blank" rel="noopener">Email me today’s summary</a><button class="btn btn-ghost" data-act="digest-preview">Preview summary</button></div></div>`;
+  if(!S.settings.email) h += `<div class="banner"><span>Add your email address so reminder emails come addressed to you.</span><button class="btn btn-sm" data-act="tab" data-view="settings">Add email</button></div>`;
+  h += warnBox(warns, true);
+  h += `<div class="grid-2"><section class="sec" aria-labelledby="h-rem"><h2 class="sec-h" id="h-rem">Reminders to send ${due.length ? `<span class="count">${due.length}</span>` : ''}</h2>`;
+  if(due.length) h += due.map(x => remCard(x.ev, x.rs)).join('');
+  else h += `<p class="note">${nextRem ? `Nothing to send today. The next reminder is <b>${esc(fmtShort(nextRem.rs.next.rd))}</b> for ${esc(nextRem.ev.title.toLowerCase().startsWith('contact') ? nextRem.ev.title : nextRem.ev.title.toLowerCase())} on ${esc(nextRem.ev.project.name)}.` : 'Nothing to send today. Add dates to your projects and reminders will show up here.'}</p>`;
+  h += `</section><section class="sec agenda" aria-labelledby="h-soon"><h2 class="sec-h" id="h-soon">Coming up</h2>`;
+  if(soon.length){
+    const groups = {};
+    soon.forEach(ev => { (groups[ev.date] = groups[ev.date] || []).push(ev); });
+    h += Object.keys(groups).map(d => `<div class="agenda-day"><div class="day-h"><span>${esc(fmtShort(d))}</span><span class="rel">${esc(relDay(diffDays(t,d)))}</span></div><div class="list">${groups[d].map(ev => evRow(ev,{showJob:true})).join('')}</div></div>`).join('');
+  } else h += `<p class="note">Nothing in the next three weeks.</p>`;
+  h += `</section></div>`;
+  return h;
+}
+
+function renderCalendar(){
+  const [y, m] = S.calMonth.split('-').map(Number);
+  const first = new Date(y, m-1, 1);
+  const daysIn = new Date(y, m, 0).getDate();
+  const lead = first.getDay();
+  const rows = Math.ceil((lead + daysIn)/7);
+  const start = toISO(new Date(y, m-1, 1 - lead));
+  const t = todayISO();
+  const evs = allEvents(), byDay = {}, remByDay = {};
+  evs.forEach(ev => { (byDay[ev.date] = byDay[ev.date] || []).push(ev); });
+  Object.values(byDay).forEach(l => l.sort(byDate));
+  evs.forEach(ev => {
+    const rs = remState(ev); if(rs.noRemind) return;
+    rs.ticks.forEach(x => { const isDue = !!(rs.due && rs.due.o === x.o); if(x.st === 'upcoming' || isDue){ const k = isDue ? t : x.rd; (remByDay[k] = remByDay[k] || []).push({ev, o:x.o, label: isDue ? whenPhrase(rs.d) : 'in ' + offLong(x.o)}); } });
+  });
+  let h = `<div class="cal-bar"><h1>${esc(first.toLocaleDateString(LOC,{month:'long', year:'numeric'}))}</h1>
+    <div class="cal-nav">
+      <label class="check"><input type="checkbox" data-change="cal-rem" ${S.calRem ? 'checked' : ''}> Show reminder dates</label>
+      <button class="btn btn-sm" data-act="cal-move" data-n="-1" aria-label="Previous month">Previous</button>
+      <button class="btn btn-sm" data-act="cal-today">Today</button>
+      <button class="btn btn-sm" data-act="cal-move" data-n="1" aria-label="Next month">Next</button>
+    </div></div>`;
+  h += `<div class="cal-wd" aria-hidden="true">${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div>${d}</div>`).join('')}</div><div class="cal-grid">`;
+  for(let i = 0; i < rows*7; i++){
+    const iso = addDays(start, i), dd = parseISO(iso);
+    const list = byDay[iso] || [], rems = S.calRem ? (remByDay[iso] || []) : [];
+    const cls = [dd.getMonth() !== m-1 ? 'out' : '', iso === t ? 'is-today' : '', iso === S.calSel ? 'is-sel' : ''].join(' ');
+    const label = `${fmtLong(iso)}, ${list.length ? plural(list.length,'item') : 'nothing scheduled'}${rems.length ? ', ' + plural(rems.length,'reminder') : ''}`;
+    h += `<button class="cal-cell ${cls}" data-act="cal-day" data-date="${iso}" aria-label="${esc(label)}" ${iso === S.calSel ? 'aria-pressed="true"' : ''}>
+      <span class="cal-num tnum">${dd.getDate()}</span>
+      <span class="cal-chips">${list.slice(0,3).map(ev => `<span class="chip ${ev.done ? 'done' : ''}" style="--cat:${catColor(ev.type)}" title="${esc(ev.title + ', ' + ev.project.name)}">${esc(ev.title)}</span>`).join('')}${list.length > 3 ? `<span class="more">${list.length-3} more</span>` : ''}</span>
+      <span class="cal-dots">${list.slice(0,5).map(ev => `<i style="--cat:${catColor(ev.type)}"></i>`).join('')}</span>
+      ${rems.length ? `<span class="cal-rem"><span>${plural(rems.length,'reminder')}</span></span>` : ''}
+    </button>`;
+  }
+  h += `</div>`;
+  const sel = (byDay[S.calSel] || []), selRem = remByDay[S.calSel] || [];
+  h += `<section class="day-panel" aria-live="polite"><h2>${esc(fmtLong(S.calSel))}</h2>`;
+  if(!sel.length && !selRem.length) h += `<p class="note">Nothing on this day.</p>`;
+  if(sel.length) h += `<div class="list">${sel.map(ev => evRow(ev,{showJob:true})).join('')}</div>`;
+  if(selRem.length) h += `<h3 class="sec-h" style="font-size:19px;margin-top:22px">Reminders on this day</h3><div class="list">${selRem.map(r => `<div class="row" style="--cat:var(--signal)"><div class="row-bar"></div><div><div class="row-title">${esc(r.ev.title)} ${esc(r.label)}</div><div class="row-sub"><span>${esc(r.ev.project.name)}</span><span>${esc(fmtShort(r.ev.date))}</span></div></div><div class="row-actions">${editBtn(r.ev,'Open')}</div></div>`).join('')}</div>`;
+  h += `</section>`;
+  return h;
+}
+
+function renderProjects(){
+  const list = Object.values(S.projects);
+  if(!list.length) return renderEmpty();
+  const t = todayISO();
+  const row = p => {
+    const evs = projectEvents(p).sort(byDate);
+    const next = evs.find(ev => ev.date >= t && !ev.done);
+    const dueN = evs.filter(ev => remState(ev).due).length;
+    const fin = finishDate(p);
+    const dates = p.startDate ? `${fmtMD(p.startDate)}${fin ? ' to ' + fmtMD(fin) : ''}` : 'No start date yet';
+    return `<div class="prow">
+      <button class="prow-open" data-act="open-project" data-id="${esc(p.id)}"><span class="prow-name">${esc(p.name || 'Untitled project')}</span><span class="prow-sub">${esc([p.client, p.siteAddress].filter(Boolean).join(', ') || 'No client or site yet')}</span></button>
+      <div class="prow-sub prow-dates" data-act="open-project" data-id="${esc(p.id)}"><div class="tnum">${esc(dates)}</div>${next && p.status !== 'complete' ? `<div>Next: ${esc(next.title)}, ${esc(fmtShort(next.date))}</div>` : ''}</div>
+      <div class="prow-end">${p.status === 'complete' ? '<span class="tag quiet">Complete</span>' : dueN ? `<span class="tag">${plural(dueN,'reminder')} to send</span>` : ''}<button class="btn btn-sm btn-ghost btn-danger" data-act="delete-project" data-id="${esc(p.id)}" aria-label="Delete ${esc(p.name || 'project')}">Delete</button></div>
+    </div>`;
+  };
+  const active = list.filter(p => p.status !== 'complete').sort((a,b) => (a.startDate||'9') < (b.startDate||'9') ? -1 : 1);
+  const done = list.filter(p => p.status === 'complete');
+  let h = `<div class="page-h"><div><h1>Projects</h1><p>${plural(active.length,'active project')}${done.length ? `, ${done.length} complete` : ''}.</p></div><button class="btn btn-primary" data-act="new-project">New project</button></div>`;
+  h += `<div class="list">${active.map(row).join('') || '<p class="note" style="margin-top:14px">No active projects.</p>'}</div>`;
+  if(done.length) h += `<h2 class="sec-h" style="margin-top:34px">Completed</h2><div class="list">${done.map(row).join('')}</div>`;
+  return h;
+}
+
+function renderProject(){
+  const p = S.projects[S.projectId];
+  const t = todayISO();
+  const evs = projectEvents(p).sort(byDate);
+  const undated = (p.milestones||[]).filter(m => !parseISO(m.date));
+  const fin = finishDate(p);
+  const meta = [p.client, p.projectNumber ? '#' + p.projectNumber : '', p.siteAddress].filter(Boolean);
+  let h = `<p style="margin-bottom:10px"><button class="linkbtn" data-act="tab" data-view="projects">All projects</button></p>
+    <div class="page-h"><div><h1>${esc(p.name)}</h1>${meta.length ? `<p>${esc(meta.join(', '))}</p>` : ''}
+    <p class="tnum">${p.startDate ? `Starts ${esc(fmtLong(p.startDate))}${fin ? `, estimated completion ${esc(fmtShort(fin))}` : ''}` : 'No start date yet.'}</p>
+    ${p.example ? '<p><span class="tag quiet">Example project. Delete it any time.</span></p>' : ''}</div>
+    <div class="btns"><button class="btn btn-primary" data-act="edit-step" data-pid="${esc(p.id)}" data-step="job" data-item="">Edit answers</button><button class="btn btn-danger" data-act="delete-project" data-id="${esc(p.id)}">Delete project</button></div></div>`;
+  h += warnBox(projectWarnings(p).map(w => Object.assign({p}, w)), false);
+  h += `<div class="grid-2"><section class="sec"><h2 class="sec-h">Schedule</h2><div class="list">`;
+  if(!evs.length) h += `<p class="note" style="margin-top:14px">No dates yet. <button class="linkbtn" data-act="edit-step" data-pid="${esc(p.id)}" data-step="schedule" data-item="">Add the start date</button> to begin.</p>`;
+  evs.forEach(ev => {
+    const rs = remState(ev);
+    let status = '';
+    if(ev.done) status = '<span class="tag quiet">Done</span>';
+    else if(p.status === 'complete' || ev.noRemind) status = '';
+    else if(rs.due) status = '<span class="tag">Reminder ready to send</span>';
+    else if(rs.next) status = `Next reminder ${esc(fmtShort(rs.next.rd))}, ${esc(offLong(rs.next.o))} before`;
+    else if(rs.d < 0) status = 'Past';
+    const parts = []; if(ev.time) parts.push(fmtTime(ev.time)); parts.push(...summaryParts(ev));
+    const canDone = ev.type !== 'finish';
+    const doneLabel = ev.type === 'stakeholder' ? 'Contacted' : ev.type === 'start' ? 'Started' : 'Done';
+    h += `<div class="trow ${ev.done ? 'is-done' : ''} ${rs.d < 0 && !ev.done ? 'is-past' : ''}" style="--cat:${catColor(ev.type)}">
+      <div class="tdate tnum"><b>${esc(fmtMD(ev.date))}</b><span>${esc(fmtWD(ev.date))}</span></div>
+      <div class="row-bar"></div>
+      <div><div class="row-title">${esc(ev.title)}</div>${parts.length ? `<div class="row-sub">${parts.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}${status ? `<div class="row-next">${status}</div>` : ''}</div>
+      <div class="row-actions">${canDone ? `<button class="btn btn-sm" data-act="toggle-done" data-pid="${esc(p.id)}" data-eid="${esc(ev.id)}" aria-pressed="${ev.done ? 'true' : 'false'}">${doneLabel}</button>` : ''}${ev.type === 'finish' ? '' : editBtn(ev)}</div>
+    </div>`;
+  });
+  h += `</div>`;
+  if(undated.length){
+    h += `<h3 class="sec-h" style="font-size:19px;margin-top:26px">Needs a date</h3><div class="list">${undated.map(m => {
+      const ev = {id:m.id, type:m.type, title:msTitle(m), project:p, src:m};
+      return `<div class="row" style="--cat:${catColor(m.type)}"><div class="row-bar"></div><div><div class="row-title">${esc(ev.title)}</div><div class="row-sub">${summaryParts(ev).map(x => `<span>${esc(x)}</span>`).join('')}</div></div><div class="row-actions">${editBtn(ev,'Add date')}</div></div>`;
+    }).join('')}</div>`;
+  }
+  h += `</section><section class="sec"><h2 class="sec-h">Stakeholders</h2>`;
+  const sh = (p.stakeholders||[]).filter(s => (s.name||'').trim());
+  if(!sh.length) h += `<p class="note">No one added yet. <button class="linkbtn" data-act="edit-step" data-pid="${esc(p.id)}" data-step="stakeholders" data-item="">Add stakeholders</button></p>`;
+  else h += `<div class="list">${sh.map(s => `<div class="person"><div class="person-name">${esc(s.name)}</div>
+      <div class="row-sub">${[s.role, s.company].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join('')}</div>
+      ${s.preferred ? `<span class="pref">Prefers ${esc(s.preferred.toLowerCase().replace('microsoft teams','Microsoft Teams'))}</span>` : ''}
+      <div class="row-sub" style="margin-top:6px">${s.phone ? `<span><a href="tel:${esc(s.phone.replace(/[^\d+]/g,''))}">${esc(s.phone)}</a></span>` : ''}${s.email ? `<span><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></span>` : ''}${s.bestTime ? `<span>Best time: ${esc(s.bestTime)}</span>` : ''}${s.contactBy ? `<span>Contact by ${esc(fmtShort(s.contactBy))}</span>` : ''}</div>
+    </div>`).join('')}</div><p style="margin-top:12px"><button class="linkbtn" data-act="edit-step" data-pid="${esc(p.id)}" data-step="stakeholders" data-item="">Edit stakeholders</button></p>`;
+  h += projectPlansHTML(p);
+  h += `<div class="btns" style="margin-top:34px"><button class="btn" data-act="complete-project" data-id="${esc(p.id)}">${p.status === 'complete' ? 'Reopen project' : 'Mark project complete'}</button></div>`;
+  h += `</section></div>`;
+  return h;
+}
+
+function renderSettings(){
+  const st = S.settings, off = offsets();
+  const storageText = S.storage === 'db' ? 'Saved to your Claude account. Your projects will be here next time you open this page, on any device where you’re signed in.'
+    : S.storage === 'loading' ? 'Connecting to your account…'
+    : IN_CLAUDE ? 'Saved in this browser only. Download a backup now and then so nothing gets lost.'
+    : 'Saved in this browser on this computer only. It doesn’t sync with the Claude version. Download a backup now and then, since clearing your browser data would erase it.';
+  return `<div class="page-h"><div><h1>Settings</h1></div></div>
+  <section class="set-sec"><div><h2>Your email</h2><p class="muted">Reminder emails open in your mail app addressed to you.</p></div>
+    <div><label for="set-email">Email address</label><input id="set-email" type="email" autocomplete="email" value="${esc(st.email)}" data-change="set-email" placeholder="you@company.com"></div></section>
+  <section class="set-sec"><div><h2>When reminders come</h2><p class="muted">How far ahead of each date you get a reminder. These apply to every project.</p></div>
+    <div><div class="offs">${off.map(o => `<span class="off">${esc(offLong(o))} before<button data-act="off-remove" data-o="${o}" aria-label="Remove the ${esc(offLong(o))} reminder">×</button></span>`).join('') || '<span class="muted">No reminders set.</span>'}</div>
+    <div class="inline"><div><label for="off-new">Days before</label><input id="off-new" type="number" min="1" max="365" inputmode="numeric" placeholder="e.g. 3"></div><button class="btn" data-act="off-add">Add reminder</button><button class="btn btn-ghost" data-act="off-reset">Reset to 1 month, 2 weeks, 1 week, 2 days</button></div></div></section>
+  <section class="set-sec"><div><h2>What goes in each email</h2></div>
+    <div><label class="check"><input type="checkbox" data-change="set-stake" ${st.includeStakeholders ? 'checked' : ''}> List the project’s stakeholders and how each prefers to be reached</label></div></section>
+  <section class="set-sec"><div><h2>FDEP fuel tank threshold</h2><p class="muted">Fuel tanks at or above this size get the FDEP storage tank block, notice reminders and inspection tracking.</p></div>
+    <div><label for="set-fdep">Gallons</label><input id="set-fdep" type="number" min="1" step="1" inputmode="numeric" value="${esc(fdepThreshold())}" data-change="set-fdep" style="width:160px">
+    <p class="hint">FDEP’s published rule (Chapter 62-762, F.A.C.) covers aboveground tanks greater than 550 gallons. Use 551 to match it exactly.</p></div></section>
+  <section class="set-sec"><div><h2>Add to your calendar</h2><p class="muted">Downloads every upcoming date, plus a separate calendar entry on each reminder day with a pop-up alert, for Outlook, Google or Apple Calendar. ${IN_CLAUDE ? 'Unzip it, then open the .ics file.' : 'Open the downloaded .ics file.'}</p></div>
+    <div><div class="inline"><div><label for="set-time">Reminder time of day</label><input id="set-time" type="time" value="${esc(st.remindTime || '08:00')}" data-change="set-time" style="width:160px"></div><button class="btn btn-primary" data-act="export-ics">Download calendar file</button></div>
+    <p class="hint">Re-download after you change dates. Importing again may create duplicates in some calendars.</p></div></section>
+  ${IN_CLAUDE ? '' : (() => { const key = getApiKey(); return `<section class="set-sec"><div><h2>Plan review</h2><p class="muted">On this website, plan and submittal review uses your own Anthropic API key, and each review is billed to your Anthropic account.</p></div>
+    <div>${key ? `<p><b>API key saved</b> in this browser, ending in ${esc(key.slice(-4))}.</p><div class="btns" style="margin-top:8px"><button class="btn" data-act="apikey-remove">Remove key</button></div>` : `<div class="inline"><div><label for="set-apikey">Anthropic API key</label><input id="set-apikey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…" style="width:300px"></div><button class="btn btn-primary" data-act="apikey-save">Save key</button></div>`}
+    <p class="hint">The key is saved only in this browser on this computer. It is never part of the website’s code, so never paste it into a file in your GitHub repository. Create a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>.</p></div></section>`; })()}
+  <section class="set-sec"><div><h2>Your data</h2><p class="muted">${esc(storageText)}</p></div>
+    <div class="btns"><button class="btn" data-act="backup">Download backup</button><button class="btn" data-act="import">Restore from backup</button></div></section>`;
+}
+
+/* ---------- Wizard ---------- */
+function listFor(step, d){ return step.listKey === 'stakeholders' ? d.stakeholders : d.milestones.filter(m => m.type === step.type); }
+const META_KEYS = ['id','type','done','contacted','formDone','fdepNoticeDone','fdepConfirmDone','fdepInstallDone','fdepInspDone','_fromPlans','inclGen','inclEncl','inclTank','exclX','pkgBasis'];
+function isBlank(it){ return Object.keys(it).every(k => META_KEYS.includes(k) || it[k] == null || String(it[k]).trim() === ''); }
+function stepHasData(s, d){
+  if(s.kind === 'project') return s.fields.some(f => f.k !== 'durationUnit' && String(d[f.k]||'').trim());
+  if(s.kind === 'list') return listFor(s, d).some(it => !isBlank(it));
+  return false;
+}
+function newProject(){ return {id:uid('p'), name:'', client:'', projectNumber:'', siteAddress:'', startDate:'', durationValue:'', durationUnit:'weeks', status:'active', milestones:[], stakeholders:[], reminderLog:{}, createdAt:Date.now()}; }
+function addItem(step, preset){
+  const it = Object.assign({id:uid(step.listKey === 'stakeholders' ? 's' : 'm')}, preset||{});
+  if(step.listKey === 'stakeholders') S.wiz.draft.stakeholders.push(it);
+  else { it.type = step.type; S.wiz.draft.milestones.push(it); }
+  return it;
+}
+function ensureItem(){ const s = STEPS[S.wiz.step]; if(s.kind === 'list' && !s.noAuto && !listFor(s, S.wiz.draft).length) addItem(s); }
+function openWizard(pid, stepKey, itemId){
+  const p = pid && S.projects[pid];
+  const draft = p ? clone(p) : newProject();
+  draft.milestones = draft.milestones || []; draft.stakeholders = draft.stakeholders || [];
+  let i = stepKey ? STEPS.findIndex(s => s.key === stepKey) : 0; if(i < 0) i = 0;
+  S.wiz = {draft, step:i, isNew:!p, startedNew:!p, focusItem:itemId || null, error:''};
+  toastEl.hidden = true;
+  resetPlansUI();
+  ensureItem(); renderWizard(true);
+}
+function pruned(d){
+  const p = clone(d);
+  p.milestones = p.milestones.filter(m => !isBlank(m));
+  p.stakeholders = p.stakeholders.filter(s => !isBlank(s));
+  p.name = (p.name||'').trim();
+  return p;
+}
+function persistDraft(){
+  const d = S.wiz.draft; if(!(d.name||'').trim()) return false;
+  const p = pruned(d), before = S.projects[p.id];
+  if(!before || !sameProject(before, p)) writeProject(p);
+  S.wiz.isNew = false;
+  return true;
+}
+function validateStep(){
+  const s = STEPS[S.wiz.step];
+  if(s.key === 'job' && !(S.wiz.draft.name||'').trim()){ S.wiz.error = 'Give the project a name to keep going.'; renderWizard(); const el = $('#f-project-p-name'); if(el) el.focus(); return false; }
+  S.wiz.error = ''; return true;
+}
+function wizGo(i){
+  if(i === S.wiz.step) return;
+  if(!validateStep()) return;
+  persistDraft();
+  S.wiz.step = Math.max(0, Math.min(STEPS.length-1, i)); S.wiz.focusItem = null;
+  ensureItem(); renderWizard(true);
+}
+function closeWizard(openProject){
+  if(!S.wiz) return;
+  const saved = persistDraft();
+  const id = S.wiz.draft.id;
+  S.wiz = null; renderWizard();
+  if(saved && openProject){ S.projectId = id; S.view = 'project'; window.scrollTo(0,0); }
+  render();
+}
+function fieldHTML(f, val, scope, itemId){
+  const id = `f-${scope}-${itemId || 'p'}-${f.k}`;
+  const invalid = f.req && S.wiz.error ? 'aria-invalid="true" aria-describedby="wiz-err"' : '';
+  const attrs = `id="${id}" data-scope="${scope}" data-k="${f.k}"${itemId ? ` data-item="${esc(itemId)}"` : ''}`;
+  val = val == null ? '' : val;
+  let input;
+  if(f.t === 'select' || f.t === 'yesno'){
+    const opts = f.t === 'yesno' ? YESNO : f.opts;
+    input = `<select ${attrs}>${f.noBlank ? '' : '<option value="">Choose…</option>'}${opts.map(o => `<option value="${esc(o)}" ${o === val ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  } else if(f.t === 'textarea'){
+    input = `<textarea ${attrs} rows="3"${f.ph ? ` placeholder="${esc(f.ph)}"` : ''}>${esc(val)}</textarea>`;
+  } else {
+    const extra = f.t === 'number' ? ' inputmode="decimal" min="0" step="any"' : f.t === 'email' ? ' autocomplete="email"' : f.t === 'tel' ? ' autocomplete="tel"' : '';
+    input = `<input ${attrs} type="${f.t}" value="${esc(val)}"${f.ph ? ` placeholder="${esc(f.ph)}"` : ''}${f.list ? ` list="${f.list}"` : ''}${extra} ${invalid}>`;
+  }
+  return `<div class="f ${f.w}"><label for="${id}">${esc(f.label)}</label>${input}${f.req && S.wiz.error ? `<p class="err" id="wiz-err">${esc(S.wiz.error)}</p>` : ''}</div>`;
+}
+function finishText(d){
+  const fin = finishDate(d);
+  return fin ? `Estimated completion: ${fmtLong(fin)}` : 'Add a start date and duration to see the estimated completion date.';
+}
+function reviewHTML(d){
+  const p = pruned(d);
+  const evs = projectEvents(p).sort(byDate);
+  const undated = p.milestones.filter(m => !parseISO(m.date));
+  const remCount = evs.filter(ev => !ev.noRemind).length;
+  let h = `<p class="q-help">${remCount ? `You’ll get reminders for ${plural(remCount,'date')}, ${esc(offsets().map(offLong).join(', ').replace(/, ([^,]*)$/, ' and $1'))} ahead of each. Tap any step on the left to change an answer.` : 'No dates yet. Go back and add a few, or save now and fill them in later.'}</p>`;
+  h += warnBox(projectWarnings(p).map(w => Object.assign({p}, w)), false);
+  if(evs.length) h += `<div class="list review-list">${evs.map(ev => `<div class="row" style="--cat:${catColor(ev.type)}"><div class="row-bar"></div><div class="rd tnum">${esc(fmtShort(ev.date))}</div><div><div class="row-title">${esc(ev.title)}</div><div class="row-sub">${[ev.time ? fmtTime(ev.time) : '', ...summaryParts(ev)].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join('')}</div></div></div>`).join('')}</div>`;
+  if(undated.length) h += `<h3 class="sec-h" style="font-size:19px;margin-top:24px">Needs a date</h3><p class="muted">${esc(undated.map(msTitle).join(', '))}</p>`;
+  if(S.projects[d.id]) h += `<p class="muted" style="margin-top:30px">Don’t need this project anymore? <button class="linkbtn" style="color:var(--alert)" data-act="delete-project" data-id="${esc(d.id)}">Delete project</button></p>`;
+  return h;
+}
+function renderWizard(focusTop){
+  const W = S.wiz;
+  if(!W){ wizEl.hidden = true; wizEl.innerHTML = ''; document.body.style.overflow = ''; disposePlansUI(); return; }
+  const step = STEPS[W.step], d = W.draft;
+  const title = (d.name||'').trim() || 'New project';
+  let body = `<h2 class="q" id="wiz-q" tabindex="-1">${esc(step.q)}</h2>${step.help ? `<p class="q-help">${esc(step.help)}</p>` : ''}`;
+  if(step.kind === 'project'){
+    body += `<div class="fields">${step.fields.map(f => fieldHTML(f, d[f.k], 'project')).join('')}</div>`;
+    if(step.key === 'schedule') body += `<p class="calc" id="calc-finish">${esc(finishText(d))}</p>`;
+    if(step.plansUpload) body += plansUploadHTML();
+  } else if(step.kind === 'list'){
+    const items = listFor(step, d);
+    if(step.quick){
+      const have = items.map(it => (it.inspType||'').trim());
+      body += `<div class="quick" role="group" aria-label="Common inspections">${step.quick.map(q => `<button class="btn btn-sm" data-act="wiz-quick" data-v="${esc(q)}" aria-pressed="${have.includes(q) ? 'true' : 'false'}">${esc(q)}</button>`).join('')}</div>`;
+      body += `<datalist id="insp-list">${INSPECTIONS.map(x => `<option value="${esc(x)}">`).join('')}</datalist>`;
+    }
+    if(step.plans) body += plansBlockHTML(step);
+    const canFill = step.plans && Object.keys(planFill(step.type, d.plans && d.plans.data)).some(k => !k.startsWith('_'));
+    body += items.map((it, i) => `<div class="item" id="item-${esc(it.id)}"><div class="item-head"><h3>${esc(step.type === 'inspection' && it.inspType ? it.inspType : step.item + ' ' + (i+1))}</h3><div class="btns">${canFill ? `<button class="btn btn-sm" data-act="plan-apply" data-id="${esc(it.id)}">Fill from plans</button>` : ''}<button class="btn btn-sm btn-ghost" data-act="wiz-remove" data-id="${esc(it.id)}">Remove</button></div></div><div class="fields">${step.fields.map(f => fieldHTML(f, it[f.k], step.listKey || 'milestones', it.id)).join('')}</div>${step.type === 'fuel' ? fdepBlock(it) : ''}${step.type === 'crane' ? packageBlock(it) : ''}</div>`).join('');
+    body += `<button class="btn" data-act="wiz-add">${esc(items.length || !step.noAuto ? step.add : 'Add an inspection')}</button>`;
+  } else body += reviewHTML(d);
+  const last = W.step === STEPS.length - 1;
+  wizEl.innerHTML = `<div class="wiz-panel">
+    <aside class="wiz-side"><h2>${esc(title)}</h2><ol>${STEPS.map((s, i) => `<li><button class="ws ${i === W.step ? 'cur' : ''} ${stepHasData(s, d) ? 'has' : ''}" data-act="wiz-goto" data-i="${i}" ${i === W.step ? 'aria-current="step"' : ''}><b>${i+1}</b><span>${esc(s.nav)}</span></button></li>`).join('')}</ol></aside>
+    <div class="wiz-main">
+      <div class="wiz-head"><span class="prog">Step ${W.step+1} of ${STEPS.length}</span>
+        <select class="ws-select" data-change="wiz-jump" aria-label="Jump to a step">${STEPS.map((s, i) => `<option value="${i}" ${i === W.step ? 'selected' : ''}>${i+1}. ${esc(s.nav)}</option>`).join('')}</select>
+        <button class="btn btn-sm btn-ghost" data-act="wiz-close">Save and close</button></div>
+      <div class="wiz-scroll" id="wiz-scroll">${body}</div>
+      <div class="wiz-foot">
+        <div>${W.step > 0 ? `<button class="btn" data-act="wiz-back">Back</button>` : ''}</div>
+        <div class="btns">${last ? `<button class="btn btn-primary" data-act="wiz-finish">Save project</button>` : `${step.kind === 'list' ? `<button class="btn btn-ghost" data-act="wiz-next">Skip</button>` : ''}<button class="btn btn-primary" data-act="wiz-next">Next: ${esc(STEPS[W.step+1].nav)}</button>`}</div>
+      </div>
+    </div></div>`;
+  if(step.kind === 'list' && stepHasData(step, d)){
+    // "Skip" only makes sense while nothing has been entered on this step
+    const sk = wizEl.querySelector('.wiz-foot .btn-ghost'); if(sk) sk.remove();
+  }
+  wizEl.hidden = false; document.body.style.overflow = 'hidden';
+  if(W.focusItem){
+    const el = document.getElementById('item-' + W.focusItem);
+    if(el){ el.scrollIntoView({block:'start'}); const inp = el.querySelector('input,select,textarea'); if(inp) inp.focus({preventScroll:true}); }
+    W.focusItem = null;
+  } else if(focusTop){
+    const sc = $('#wiz-scroll'); if(sc) sc.scrollTop = 0;
+    const first = step.key === 'job' && !d.name ? $('#f-project-p-name') : $('#wiz-q');
+    if(first) first.focus({preventScroll:true});
+  }
+}
+function onWizInput(e){
+  const el = e.target; if(!S.wiz || !el.dataset || !el.dataset.k) return;
+  const d = S.wiz.draft, k = el.dataset.k, v = el.type === 'checkbox' ? el.checked : el.value;
+  if(el.dataset.scope === 'project') d[k] = v;
+  else {
+    const it = d[el.dataset.scope].find(x => x.id === el.dataset.item);
+    if(it){
+      if(k === 'extra'){ const ex = new Set(it.exclX || []); if(el.checked) ex.delete(el.dataset.x); else ex.add(el.dataset.x); it.exclX = [...ex]; }
+      else it[k] = v;
+    }
+  }
+  if(k === 'startDate' || k === 'durationValue' || k === 'durationUnit'){ const c = $('#calc-finish'); if(c) c.textContent = finishText(d); }
+  if(k === 'name'){ const h = wizEl.querySelector('.wiz-side h2'); if(h) h.textContent = v.trim() || 'New project'; if(S.wiz.error && v.trim()){ S.wiz.error = ''; const er = $('#wiz-err'); if(er) er.remove(); el.removeAttribute('aria-invalid'); } }
+  if(k === 'inspType'){ const h = wizEl.querySelector(`#item-${CSS.escape(el.dataset.item)} .item-head h3`); if(h) h.textContent = v.trim() || 'Inspection'; }
+  if((k === 'tank' || k === 'fuelType') && e.type === 'change') setTimeout(renderWizardKeepFocus, 0);
+  if(k === 'pkgWeight' && e.type === 'change') setTimeout(renderWizardKeepFocus, 0);
+}
+function renderWizardKeepFocus(){
+  if(!S.wiz) return;
+  const a = document.activeElement, id = a && wizEl.contains(a) ? a.id : '';
+  const sc = $('#wiz-scroll'), top = sc ? sc.scrollTop : 0;
+  renderWizard();
+  const sc2 = $('#wiz-scroll'); if(sc2) sc2.scrollTop = top;
+  if(id){ const el = document.getElementById(id); if(el) el.focus({preventScroll:true}); }
+}
+function fdepBlock(it){
+  const th = fmtNum(fdepThreshold()), cap = toNum(it.tank);
+  if(!fdepApplies(it)) return `<div class="fdep"><h4>FDEP storage tank</h4><p class="muted">The FDEP tank check is set up for liquid fuels such as diesel and gasoline.</p></div>`;
+  if(cap == null) return `<div class="fdep"><h4>FDEP storage tank</h4><p class="muted">Enter the tank capacity above to check whether FDEP storage tank inspections apply (${th} gallons and up).</p></div>`;
+  if(!fdepRequired(it)) return `<div class="fdep"><h4>FDEP storage tank</h4><p><b>Not required.</b> ${esc(fmtNum(cap))} gallons is under the ${th} gallon FDEP threshold.</p></div>`;
+  return `<div class="fdep req"><h4>FDEP storage tank</h4><p><b>FDEP inspections required.</b> ${esc(fmtNum(cap))} gallons is at or above the ${th} gallon threshold. Add the installation date to get reminders for the 30 to 45 day notice and the 48 to 72 hour confirmation.</p><div class="fields">${FDEP_FIELDS.map(f => fieldHTML(f, it[f.k], 'milestones', it.id)).join('')}</div></div>`;
+}
+wizEl.addEventListener('input', onWizInput);
+wizEl.addEventListener('change', onWizInput);
+
+/* ---------- Modal and toast ---------- */
+let modalText = '', modalReturn = null;
+function showModal(html){ modalReturn = document.activeElement; modalEl.innerHTML = `<div class="modal-box">${html}</div>`; modalEl.hidden = false; const f = modalEl.querySelector('[data-autofocus]') || modalEl.querySelector('button,a,input,textarea'); if(f) f.focus(); }
+function closeModal(){ modalEl.hidden = true; modalEl.innerHTML = ''; if(modalReturn && document.contains(modalReturn)) modalReturn.focus(); }
+modalEl.addEventListener('click', e => { if(e.target === modalEl) closeModal(); });
+function emailModal(em, key, off){
+  modalText = `Subject: ${em.subject}\n\n${em.body}`;
+  showModal(`<h2>Email preview</h2>
+    <label for="m-subj">Subject</label><input id="m-subj" readonly value="${esc(em.subject)}">
+    <label for="m-body" style="margin-top:12px">Message</label><textarea id="m-body" readonly>${esc(em.body)}</textarea>
+    <div class="btns"><a class="btn btn-signal" data-autofocus href="${esc(mailto(em))}" target="_blank" rel="noopener" ${key ? `data-act="rem-email" data-key="${esc(key)}" data-off="${off}"` : 'data-act="modal-close-soon"'}>Email me</a><button class="btn" data-act="modal-copy">Copy text</button><button class="btn btn-ghost" data-act="modal-close">Close</button></div>
+    <p class="hint">If “Email me” doesn’t open your mail app, use Copy text and paste it into a new email.</p>`);
+}
+let toastTimer = null, toastFn = null;
+function toast(msg, action){
+  clearTimeout(toastTimer);
+  toastFn = action ? action.fn : null;
+  toastEl.innerHTML = `<span>${esc(msg)}</span>${action ? `<button data-act="toast-action">${esc(action.label)}</button>` : ''}`;
+  toastEl.hidden = false;
+  toastTimer = setTimeout(() => { toastEl.hidden = true; toastFn = null; }, action ? 7000 : 4500);
+}
+async function copyText(txt){
+  try{ await navigator.clipboard.writeText(txt); toast('Copied. Paste it into a new email.'); return; }catch(e){}
+  const ta = $('#m-body');
+  if(ta){ ta.removeAttribute('readonly'); ta.focus(); ta.select(); let ok = false; try{ ok = document.execCommand('copy'); }catch(e){} ta.setAttribute('readonly',''); toast(ok ? 'Copied. Paste it into a new email.' : 'Select the message text and copy it manually.'); }
+}
+
+/* ---------- Actions ---------- */
+function handleRem(key, off, status){
+  const ev = S.evIndex[key]; if(!ev) return;
+  const p = clone(S.projects[ev.project.id]);
+  const prev = clone(p.reminderLog || {});
+  p.reminderLog = p.reminderLog || {};
+  const t = todayISO();
+  offsets().forEach(o => { if(o >= off && addDays(ev.date, -o) <= t) p.reminderLog[ev.id+'|'+o] = {s:status, at:t}; });
+  writeProject(p, {delay: status === 'sent' ? 350 : 0});
+  toast(status === 'sent' ? 'Marked as sent.' : 'Reminder dismissed.', {label:'Undo', fn:() => { const q = clone(S.projects[p.id]); q.reminderLog = prev; writeProject(q); }});
+}
+function toggleDone(pid, eid){
+  const p = clone(S.projects[pid]); if(!p) return;
+  if(eid === 'start') p.startDone = !p.startDone;
+  else if(Object.keys(DERIVED_DONE).some(px => eid.startsWith(px))){
+    const px = Object.keys(DERIVED_DONE).find(x => eid.startsWith(x)), key = DERIVED_DONE[px];
+    const m = (p.milestones||[]).find(x => px + x.id === eid); if(m) m[key] = !m[key];
+  }
+  else if(eid.startsWith('sh_')){ const s = (p.stakeholders||[]).find(x => 'sh_'+x.id === eid); if(s) s.contacted = !s.contacted; }
+  else { const m = (p.milestones||[]).find(x => x.id === eid); if(m) m.done = !m.done; }
+  writeProject(p);
+}
+function addExample(){
+  const t = todayISO(), a = n => addDays(t, n);
+  const m = (type, o) => Object.assign({id:uid('m'), type}, o);
+  const p = Object.assign(newProject(), {
+    example:true, name:'Riverside Clinic standby generator', client:'Riverside Health', projectNumber:'24-118', siteAddress:'1450 Harbor Blvd',
+    startDate:a(9), durationValue:'6', durationUnit:'weeks',
+    milestones:[
+      m('turnover',{date:a(4), time:'10:00', location:'Riverside Health main office, Room 2B', attendees:'Estimator, PM, site super, facilities manager', notes:'Bring the one-line diagram and submittal log.'}),
+      m('plans',{date:a(6), submitted:a(-15), status:'In review', reviewer:'City building department', permitNo:'BLD-26-04411'}),
+      m('ats',{date:a(12), amps:'400 A', qty:'2', model:'Automatic transfer switch, open transition', vendor:'PO 7731'}),
+      m('inspection',{inspType:'Underground electrical', status:'Scheduled', date:a(10), time:'08:00', ahj:'City building department', permitNo:'BLD-26-04411', notes:'Conduit stub-ups for the pad'}),
+      m('inspection',{inspType:'Slab inspection', status:'Scheduled', date:a(13), time:'09:00', ahj:'City building department', permitNo:'BLD-26-04411'}),
+      m('concrete',{formDate:a(11), formTime:'07:00', formCrew:'Gulf Coast Concrete Forming', date:a(15), time:'07:00', psi:'4,000 psi', supplier:'Coastal Ready Mix', yards:'4.5', padSize:"14'-0\" × 8'-0\" × 12\"", rebar:'#5 @ 12" O.C. each way, top and bottom', pump:'No'}),
+      m('generator',{date:a(19), time:'08:00', kw:'500', makeModel:'Diesel standby generator, sound-attenuated enclosure', vendor:'PO 7730', tracking:'Ships from the factory 5 days prior'}),
+      m('crane',{date:a(19), time:'08:30', tons:'90', company:'Harbor Crane Service', pkgWeight:'18,900', liftPlan:'Yes', permits:'Lane closure on Harbor Blvd, 8 to 11 AM'}),
+      m('inspection',{inspType:'Rough electrical', status:'Not scheduled', ahj:'City building department'}),
+      m('fuel',{date:a(30), fuelType:'Diesel', quantity:'900', tank:'1000', supplier:'Sunshine Fuel Co.', supplierContact:'Dispatch, 555-0142', fdepInstallDate:a(19), fdepInspDate:a(24), fdepInspTime:'10:00', fdepContact:'County storage tank program', fdepStatus:'Installation notice sent', fdepNoticeDone:true}),
+      m('startup',{date:a(35), time:'09:00', loadBank:'Yes', tech:'Factory startup tech', witnesses:'Owner and engineer of record', training:'Not sure yet'}),
+      m('inspection',{inspType:'Pre-power inspection', status:'Not scheduled', ahj:'City building department'}),
+      m('inspection',{inspType:'Fuel inspection', status:'Not scheduled', ahj:'Fire marshal'}),
+      m('inspection',{inspType:'Electrical final', status:'Not scheduled', ahj:'City building department'}),
+      m('inspection',{inspType:'Building final', status:'Not scheduled', ahj:'City building department'}),
+      m('inspection',{inspType:'Fire final', status:'Not scheduled', ahj:'Fire marshal'})
+    ],
+    stakeholders:[
+      {id:uid('s'), name:'Dana Ruiz', role:'Facilities manager', company:'Riverside Health', preferred:'Phone call', phone:'555-0110', email:'dana.ruiz@example.com', bestTime:'Before 10 AM', contactBy:a(2), notes:'Needs 72 hours notice before any power shutdown.'},
+      {id:uid('s'), name:'Marcus Lee', role:'Engineer of record', company:'Lee & Partners', preferred:'Email', email:'marcus@example.com', contactBy:a(10)},
+      {id:uid('s'), name:'Priya Shah', role:'Clinic operations', company:'Riverside Health', preferred:'Text message', phone:'555-0133'}
+    ]
+  });
+  // Make the example look lived-in: earlier reminders already went out, and three are waiting today.
+  const keep = ['turnover','crane','stakeholder'];
+  const tday = todayISO();
+  projectEvents(p).forEach(ev => {
+    const rs = remState(ev); if(rs.noRemind || rs.d < 0) return;
+    const reached = rs.ticks.filter(x => x.o >= rs.d);
+    const keepLatest = keep.includes(ev.type) && !(ev.type === 'stakeholder' && ev.date > addDays(tday, 5));
+    reached.forEach((x, i) => { if(keepLatest && i === reached.length - 1) return; p.reminderLog[ev.id+'|'+x.o] = {s:'sent', at:x.rd < tday ? x.rd : tday}; });
+  });
+  writeProject(p);
+  S.view = 'today'; render();
+  toast('Example project added. Open it from Projects to see everything it tracks.');
+}
+
+
+/* ---------- Plans upload and review ---------- */
+const PDFJS_BASE = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+let pdfjsPromise = null;
+function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => res(); s.onerror = () => rej(new Error('Could not load ' + src)); document.head.appendChild(s); }); }
+function getPdfjs(){
+  if(!pdfjsPromise) pdfjsPromise = loadScript(PDFJS_BASE + 'pdf.min.js')
+    .then(() => loadScript(PDFJS_BASE + 'pdf.worker.min.js'))
+    .then(() => { const lib = window.pdfjsLib; if(!lib) throw new Error('PDF reader missing'); lib.GlobalWorkerOptions.workerSrc = PDFJS_BASE + 'pdf.worker.min.js'; return lib; })
+    .catch(e => { pdfjsPromise = null; throw e; });
+  return pdfjsPromise;
+}
+let PU = null; // files uploaded during this editing session
+function resetPlansUI(){
+  disposePlansUI();
+  const mine = PU = {files:[], busy:false, msg:'', error:'', note:'', ctl:null, canSample:null, maxImages:0, reviewed:false};
+  useCap('sample').then(async s => {
+    if(PU !== mine) return;
+    mine.canSample = !!s;
+    if(s){ try{ const lim = await s.limits(); mine.maxImages = (lim && lim.images && lim.images.maxCount) || 0; }catch(e){ mine.maxImages = 0; } }
+    if(S.wiz && (STEPS[S.wiz.step].plans || STEPS[S.wiz.step].plansUpload) && PU === mine) renderWizardKeepFocus();
+  });
+}
+function disposePlansUI(){
+  if(!PU) return;
+  if(PU.ctl) try{ PU.ctl.abort(); }catch(e){}
+  PU.files.forEach(f => { if(f.kind === 'image' && f.pages[0].thumb) URL.revokeObjectURL(f.pages[0].thumb); if(f.doc) try{ f.doc.destroy(); }catch(e){} });
+  PU = null;
+}
+function setPlansMsg(t){ if(PU) PU.msg = t; const el = document.getElementById('plans-msg'); if(el) el.textContent = t; }
+async function addPdf(f, mine){
+  const lib = await getPdfjs();
+  const doc = await lib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;
+  const n = Math.min(doc.numPages, 300);
+  const entry = {key:uid('f'), name:f.name, kind:'pdf', doc, total:doc.numPages, pages:[], hasText:false};
+  for(let i = 1; i <= n; i++){
+    if(PU !== mine) break;
+    let text = '', hl = [];
+    try{
+      const pg = await doc.getPage(i), tc = await pg.getTextContent();
+      text = tc.items.map(it => it.str).join(' ').replace(/\s+/g,' ').trim();
+      hl = await highlightedText(pg, tc);
+    }catch(e){}
+    if(text.length > 40) entry.hasText = true;
+    entry.pages.push({n:i, text, hl, thumb:'', sel:false});
+    if(i % 5 === 0) setPlansMsg(`Reading ${f.name}: page ${i} of ${n}…`);
+  }
+  return entry;
+}
+// Text that sits under highlight, circle, box or underline marks in the PDF (how submittals show the selected options)
+async function highlightedText(pg, tc){
+  let anns = [];
+  try{ anns = await pg.getAnnotations(); }catch(e){ return []; }
+  const marks = anns.filter(a => a && a.rect && ['Highlight','Underline','Squiggly','Square','Circle','Ink'].includes(a.subtype));
+  const out = [];
+  marks.slice(0, 40).forEach(a => {
+    const x1 = Math.min(a.rect[0], a.rect[2]) - 2, x2 = Math.max(a.rect[0], a.rect[2]) + 2, y1 = Math.min(a.rect[1], a.rect[3]) - 2, y2 = Math.max(a.rect[1], a.rect[3]) + 2;
+    const words = tc.items.filter(it => {
+      if(!it.str || !it.transform) return false;
+      const h = Math.abs(it.transform[3]) || it.height || 8;
+      const cx = it.transform[4] + (it.width || 0) / 2, cy = it.transform[5] + h / 3;
+      return cx >= x1 && cx <= x2 && cy >= y1 && cy <= y2;
+    }).map(it => it.str).join(' ').replace(/\s+/g,' ').trim();
+    if(words && !out.includes(words)) out.push(words.slice(0, 200));
+  });
+  return out;
+}
+function addImage(f){ return {key:uid('f'), name:f.name, kind:'image', blob:f, total:1, hasText:false, pages:[{n:1, text:'', thumb:URL.createObjectURL(f), sel:false}]}; }
+async function renderPage(doc, n, longSide, asBlob){
+  const page = await doc.getPage(n);
+  const v1 = page.getViewport({scale:1});
+  const scale = Math.min(4, longSide / Math.max(v1.width, v1.height));
+  const vp = page.getViewport({scale});
+  const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(vp.width)); cv.height = Math.max(1, Math.round(vp.height));
+  const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+  await page.render({canvasContext:ctx, viewport:vp}).promise;
+  const out = asBlob ? await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.85)) : cv.toDataURL('image/jpeg', 0.7);
+  cv.width = cv.height = 0;
+  return out;
+}
+async function storeAsset(f, pid){
+  const assets = await useCap('assets'); if(!assets) return;
+  if(f.size > 20 * 1024 * 1024){ if(PU){ PU.note = `${f.name} is over 20 MB, so no copy was kept. It can still be reviewed now.`; renderWizardKeepFocus(); } return; }
+  const type = /\.pdf$/i.test(f.name) || f.type === 'application/pdf' ? 'application/pdf' : f.type;
+  let r;
+  try{ r = await assets.upload(f, {type}); }catch(e){ if(PU){ PU.note = `Couldn’t keep a copy of ${f.name}, but it can still be reviewed now.`; renderWizardKeepFocus(); } return; }
+  const rec = {assetId:r.id, name:f.name, size:r.sizeBytes || f.size, type:r.contentType || type, uploadedAt:new Date().toISOString()};
+  if(S.wiz && S.wiz.draft.id === pid){
+    const d = S.wiz.draft; d.plans = d.plans || {}; d.plans.files = (d.plans.files || []).concat(rec);
+    persistDraft(); renderWizardKeepFocus();
+  } else if(S.projects[pid]){
+    const q = clone(S.projects[pid]); q.plans = q.plans || {}; q.plans.files = (q.plans.files || []).concat(rec); writeProject(q);
+  }
+}
+async function removeStoredPlan(assetId){
+  if(!S.wiz) return;
+  const d = S.wiz.draft; if(!d.plans) return;
+  d.plans.files = (d.plans.files || []).filter(f => f.assetId !== assetId);
+  persistDraft(); renderWizardKeepFocus();
+  const assets = await useCap('assets');
+  if(assets && assetId) try{ await assets.delete(assetId); }catch(e){}
+}
+$('#plans-file').addEventListener('change', async e => {
+  const files = [...(e.target.files || [])]; e.target.value = '';
+  if(!files.length || !S.wiz || !PU) return;
+  const mine = PU, pid = S.wiz.draft.id, skipped = [];
+  PU.busy = true; PU.error = ''; PU.note = ''; PU.msg = 'Opening files…'; renderWizardKeepFocus();
+  for(const f of files){
+    if(PU !== mine) return;
+    const isPdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+    const isImg = /^image\/(jpeg|png|webp|gif)$/.test(f.type);
+    if(!isPdf && !isImg){ skipped.push(f.name); continue; }
+    try{
+      setPlansMsg(`Opening ${f.name}…`);
+      const entry = isPdf ? await addPdf(f, mine) : addImage(f);
+      if(PU !== mine) return;
+      PU.files.push(entry); mine.reviewed = false;
+      storeAsset(f, pid);
+    }catch(err){
+      mine.error = isPdf && !window.pdfjsLib ? 'The PDF reader couldn’t load. Check your internet connection and try again.' : `Couldn’t open ${f.name}. If it’s password protected, save an unprotected copy and upload that.`;
+    }
+  }
+  if(PU !== mine) return;
+  PU.busy = false; PU.msg = '';
+  if(skipped.length) PU.note = `Skipped ${skipped.join(', ')}. Upload PDFs, or JPG, PNG or WebP images.`;
+  renderWizardKeepFocus();
+});
+const PLAN_SCHEMA = `{
+  "padDetail": {"length": string|null, "width": string|null, "thickness": string|null, "lengthIn": number|null, "widthIn": number|null, "thicknessIn": number|null, "strengthPsi": number|null, "reinforcement": string|null, "notes": string|null, "sources": [string]},
+  "padLayout": {"length": string|null, "width": string|null, "thickness": string|null, "lengthIn": number|null, "widthIn": number|null, "thicknessIn": number|null, "sources": [string]},
+  "generator": {"makeModel": string|null, "kw": number|null, "weightLbs": number|null, "weightBasis": string|null, "includesEnclosure": boolean|null, "lengthIn": number|null, "widthIn": number|null, "dimensions": string|null, "fuel": string|null, "sources": [string]},
+  "enclosure": {"description": string|null, "highlighted": boolean|null, "weightLbs": number|null, "includedInGeneratorWeight": boolean|null, "dimensions": string|null, "options": [{"description": string, "weightLbs": number|null, "selected": boolean|null, "source": string|null}], "sources": [string]},
+  "fuelTank": {"capacityGal": number|null, "description": string|null, "weightLbs": number|null, "lengthIn": number|null, "widthIn": number|null, "dimensions": string|null, "sources": [string]},
+  "selectedOptions": [{"item": string, "weightLbs": number|null, "source": string|null}],
+  "packageWeight": {"weightLbs": number|null, "description": string|null, "fromPadLayout": boolean|null, "sources": [string]},
+  "ats": {"amps": string|null, "quantity": number|null, "model": string|null, "sources": [string]},
+  "otherFacts": [{"label": string, "value": string, "source": string|null}],
+  "conflicts": [string]
+}`;
+const PLAN_NOTES = `Notes:
+- padDetail is the generator pad or slab detail in the construction plans. padLayout is the pad size shown on the submittal's pad layout drawing. lengthIn, widthIn and thicknessIn are the same dimensions in inches.
+- generator.weightLbs is the generator set weight; weightBasis says what it includes (for example "wet" or "dry"); includesEnclosure is true only if the documents say that weight already includes the enclosure. generator.lengthIn and widthIn are the footprint of the generator base, in inches.
+- enclosure.options lists every enclosure choice shown, with its weight and whether it is marked as selected. enclosure.weightLbs is the weight of the selected option only; leave it null when no option is marked as selected. highlighted is true when you identified the selected option from highlighting or marking.
+- fuelTank.weightLbs is the empty (dry) tank weight. fuelTank.lengthIn and widthIn are the footprint of the tank base, in inches.
+- selectedOptions lists up to 8 other selected options that add weight to the package (for example a silencer, battery rack, load bank or day tank). Do not repeat the generator, enclosure or tank there.
+- packageWeight is only a total package or shipping weight the documents state for the whole assembly.
+- otherFacts holds up to 6 other facts useful for the crane lift or the pad, such as lifting points, anchor bolts, clearances or rigging notes.
+- conflicts lists every discrepancy you can see between documents or pages, as one short sentence each naming the sources. Compare pad sizes and thickness, concrete strength and reinforcement, generator make, model and kW, voltage, fuel type, fuel tank capacity, dimensions and weights, enclosure type, ATS amperage and quantity, and anything else that should match.`;
+function plansPrompt(labels, text, part){
+  return `You are helping a project manager for standby generator installations review the construction plans and the generator equipment submittal${part && part.parts > 1 ? `. This is part ${part.part} of ${part.parts} of the document set; report what these pages show, and the parts will be combined afterward` : ''}.
+
+${labels.length ? `Attached are ${labels.length} image(s), in this order:\n${labels.map((l, i) => `Image ${i+1}: ${l}`).join('\n')}` : 'No images are attached; use the text below.'}
+${text ? `\nText pulled from the PDF pages (it may be jumbled, so read it together with the images):\n${text}\n` : ''}
+Review every page provided. Report only what the documents state. Never estimate or calculate a value yourself (the app does the math); use null when something is not shown. Keep dimension text as written (for example 14'-0" x 8'-0" x 12"), and also give lengths as plain numbers in inches where the field asks for inches. For each group, list where you found it in "sources" using the labels above (for example "Submittal.pdf p. 12").
+
+Important:
+- Equipment submittals often list several choices (enclosure types, fuel tanks, accessories) and mark the ones selected for this job by highlighting, circling, checking or bolding them. Use only the selected choices. Text found under highlight marks in the PDF is listed as "Highlighted or marked on this page".
+- The submittal's pad layout drawing (the manufacturer's pad or outline drawing, not the pad detail in the construction plans) usually states a total package weight. Report that in packageWeight with fromPadLayout set to true.
+- Keep the construction plans' pad detail (padDetail) separate from the submittal's pad layout (padLayout).
+
+Reply with only this JSON:
+${PLAN_SCHEMA}
+
+${PLAN_NOTES}`;
+}
+function mergePrompt(parts){
+  return `You are combining partial reviews of one document set for a standby generator installation (the construction plans and the generator equipment submittal). Each part below covers different pages and lists what was found there, with sources.
+
+${parts.map((r, i) => `Part ${i+1} (${r.range}):\n${JSON.stringify(r.data)}`).join('\n\n')}
+
+Combine them into one result. Keep every source. Use these rules:
+- padDetail comes from the construction plans; padLayout comes from the submittal's pad layout drawing.
+- packageWeight: prefer a total package weight stated on the submittal pad layout.
+- enclosure: use the option marked as selected. If no part found a selected enclosure, leave enclosure.weightLbs null and list every enclosure option found in enclosure.options.
+- Merge selectedOptions without duplicates.
+- conflicts: compare everything across all parts and list every discrepancy between documents or pages, plus any conflicts the parts already noted, without repeats.
+
+Reply with only this JSON:
+${PLAN_SCHEMA}
+
+${PLAN_NOTES}`;
+}
+function normalizePlans(r){
+  const o = (r && typeof r === 'object' && !Array.isArray(r)) ? r : {};
+  const num = v => { const n = typeof v === 'number' ? v : toNum(v); return n != null && isFinite(n) && n > 0 ? n : null; };
+  const str = v => (typeof v === 'string' && v.trim() && !/^(null|n\/a|none|unknown|not shown)$/i.test(v.trim())) ? v.trim().slice(0, 240) : (typeof v === 'number' && isFinite(v) ? String(v) : null);
+  const bool = v => v === true ? true : v === false ? false : null;
+  const srcs = v => Array.isArray(v) ? v.map(str).filter(Boolean).slice(0, 6) : [];
+  const g = k => (o[k] && typeof o[k] === 'object' && !Array.isArray(o[k])) ? o[k] : {};
+  const pad = x => ({length:str(x.length), width:str(x.width), thickness:str(x.thickness), lengthIn:num(x.lengthIn), widthIn:num(x.widthIn), thicknessIn:num(x.thicknessIn), sources:srcs(x.sources)});
+  const pd = g('padDetail'), pl = g('padLayout'), gen = g('generator'), e = g('enclosure'), t = g('fuelTank'), a = g('ats'), pk = g('packageWeight');
+  return {
+    v:2,
+    padDetail:Object.assign(pad(pd), {strengthPsi:num(pd.strengthPsi), reinforcement:str(pd.reinforcement), notes:str(pd.notes)}),
+    padLayout:pad(pl),
+    generator:{makeModel:str(gen.makeModel), kw:num(gen.kw), weightLbs:num(gen.weightLbs), weightBasis:str(gen.weightBasis), includesEnclosure:bool(gen.includesEnclosure), lengthIn:num(gen.lengthIn), widthIn:num(gen.widthIn), dimensions:str(gen.dimensions), fuel:str(gen.fuel), sources:srcs(gen.sources)},
+    enclosure:pickEnclosure({description:str(e.description), highlighted:bool(e.highlighted), weightLbs:num(e.weightLbs), includedInGeneratorWeight:bool(e.includedInGeneratorWeight), dimensions:str(e.dimensions), sources:srcs(e.sources),
+      options:(Array.isArray(e.options) ? e.options : []).filter(x => x && typeof x === 'object').map(x => ({description:str(x.description), weightLbs:num(x.weightLbs), selected:bool(x.selected), source:str(x.source)})).filter(x => x.description || x.weightLbs).slice(0, 10)}, bool(gen.includesEnclosure)),
+    fuelTank:{capacityGal:num(t.capacityGal), description:str(t.description), weightLbs:num(t.weightLbs), lengthIn:num(t.lengthIn), widthIn:num(t.widthIn), dimensions:str(t.dimensions), sources:srcs(t.sources)},
+    selectedOptions:(Array.isArray(o.selectedOptions) ? o.selectedOptions : []).filter(x => x && typeof x === 'object').map(x => ({item:str(x.item), weightLbs:num(x.weightLbs), source:str(x.source)})).filter(x => x.item).slice(0, 8),
+    packageWeight:{weightLbs:num(pk.weightLbs), description:str(pk.description), fromPadLayout:bool(pk.fromPadLayout), sources:srcs(pk.sources)},
+    ats:{amps:str(a.amps), quantity:num(a.quantity), model:str(a.model), sources:srcs(a.sources)},
+    otherFacts:(Array.isArray(o.otherFacts) ? o.otherFacts : []).filter(x => x && typeof x === 'object').map(x => ({label:str(x.label), value:str(x.value), source:str(x.source)})).filter(x => x.label && x.value).slice(0, 6),
+    conflicts:[...new Set((Array.isArray(o.conflicts) ? o.conflicts : []).map(str).filter(Boolean))].slice(0, 15)
+  };
+}
+// Use the enclosure option marked as selected. If none is marked, use the heaviest option listed.
+function pickEnclosure(e, genIncludes){
+  e.basis = null;
+  if(e.includedInGeneratorWeight || genIncludes) return e;
+  const opts = (e.options || []).filter(o => o.weightLbs);
+  const sel = opts.find(o => o.selected);
+  if(e.weightLbs){ e.basis = 'selected'; return e; }
+  if(sel){ e.weightLbs = sel.weightLbs; e.description = e.description || sel.description; e.basis = 'selected'; if(sel.source && !e.sources.includes(sel.source)) e.sources.push(sel.source); return e; }
+  if(opts.length){
+    const top = opts.reduce((a, b) => b.weightLbs > a.weightLbs ? b : a);
+    e.weightLbs = top.weightLbs; e.description = top.description || e.description; e.basis = 'heaviest'; e.highlighted = false;
+    if(top.source && !e.sources.includes(top.source)) e.sources.push(top.source);
+  }
+  return e;
+}
+// If the combining step fails, merge the parts in code: first value found wins, notes are pooled
+function mergeLocal(parts){
+  const out = normalizePlans({});
+  const groups = ['padDetail','padLayout','generator','enclosure','fuelTank','packageWeight','ats'];
+  parts.forEach(({data}) => {
+    groups.forEach(g => {
+      const src = data[g] || {}, dst = out[g];
+      Object.keys(src).forEach(k => {
+        if(k === 'sources') dst.sources = [...new Set(dst.sources.concat(src.sources || []))].slice(0, 8);
+        else if(k === 'options') dst.options = (dst.options || []).concat(src.options || []).slice(0, 10);
+        else if(dst[k] == null && src[k] != null) dst[k] = src[k];
+        else if(typeof dst[k] === 'number' && typeof src[k] === 'number' && Math.abs(dst[k] - src[k]) > 0.5 && /lengthIn|widthIn|thicknessIn|weightLbs|kw|capacityGal|strengthPsi/.test(k)){
+          out.conflicts.push(`${g} ${k}: ${dst[k]} in one part, ${src[k]} in another (${(dst.sources || []).concat(src.sources || []).slice(0, 4).join(', ')}).`);
+        }
+      });
+    });
+    out.selectedOptions = out.selectedOptions.concat((data.selectedOptions || []).filter(x => !out.selectedOptions.some(y => y.item === x.item))).slice(0, 8);
+    out.otherFacts = out.otherFacts.concat(data.otherFacts || []).slice(0, 6);
+    out.conflicts = [...new Set(out.conflicts.concat(data.conflicts || []))].slice(0, 15);
+  });
+  if(out.enclosure.basis === 'heaviest'){ out.enclosure.weightLbs = null; }
+  out.enclosure = pickEnclosure(out.enclosure, out.generator.includesEnclosure);
+  return out;
+}
+function plansErrorText(e){
+  const code = e && e.code;
+  if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(code)){ if(PU) PU.canSample = false; return ''; }
+  switch(code){
+    case 'cancelled': return '';
+    case 'rate_limited': return 'Claude is busy or you’ve reached a usage limit. Try again in a few minutes.';
+    case 'image_rejected': return 'One of the pages couldn’t be sent as an image. Try fewer pages, or a screenshot of the detail you need.';
+    case 'images_unavailable': if(PU) PU.maxImages = 0; return 'This view can’t send images to Claude. Review again to use the text in the PDF only.';
+    case 'prompt_too_large': return 'That’s too much for one review. Pick fewer pages.';
+    case 'invalid_json': case 'empty_completion': return 'Claude’s answer didn’t come back in a usable form. Review again.';
+    case 'refused': return 'Claude couldn’t review these pages. Try different pages.';
+    case 'session_expired': return 'Your Claude session expired. Reload the page and sign in again.';
+    case 'api_key': return 'The Anthropic API key is missing or was rejected. Check it under Settings, Plan review.';
+    case 'network': return 'Couldn’t reach Anthropic. Check your internet connection and try again.';
+    case 'api_error': return `The review didn’t finish${e.message && e.message !== 'api_error' ? ': ' + e.message : '.'}`;
+    default: return 'The review didn’t finish. Review again.';
+  }
+}
+function pageLabel(f, p){ return f.kind === 'pdf' ? `${f.name} p. ${p.n}` : f.name; }
+function rangeLabel(batch){
+  const byFile = [];
+  batch.forEach(({f, p}) => { let g = byFile.find(x => x.f === f); if(!g){ g = {f, ns:[]}; byFile.push(g); } g.ns.push(p.n); });
+  return byFile.map(g => g.f.kind === 'pdf' ? `${g.f.name} p. ${g.ns[0]}${g.ns.length > 1 ? '–' + g.ns[g.ns.length - 1] : ''}` : g.f.name).join(', ');
+}
+function totalPages(){ return PU ? PU.files.reduce((n, f) => n + f.pages.length, 0) : 0; }
+function planBatches(max){
+  const all = []; PU.files.forEach(f => f.pages.forEach(p => all.push({f, p})));
+  const out = [];
+  if(max > 0){ for(let i = 0; i < all.length; i += max) out.push(all.slice(i, i + max)); return out; }
+  let cur = [], size = 0;
+  all.forEach(x => { const l = (x.p.text || '').length + 200; if(cur.length && size + l > 110000){ out.push(cur); cur = []; size = 0; } cur.push(x); size += l; });
+  if(cur.length) out.push(cur);
+  return out;
+}
+async function reviewPlans(){
+  if(!S.wiz || !PU || PU.busy) return;
+  const mine = PU;
+  const sample = await useCap('sample');
+  if(!sample){ mine.canSample = false; renderWizardKeepFocus(); return; }
+  try{ const lim = await sample.limits(); mine.maxImages = (lim && lim.images && lim.images.maxCount) || 0; }catch(e){}
+  const max = Math.min(mine.maxImages, 20);
+  const batches = planBatches(max);
+  if(!batches.length){ mine.error = 'Upload the plans and submittals first.'; renderWizardKeepFocus(); return; }
+  mine.busy = true; mine.error = ''; mine.ctl = new AbortController();
+  const signal = mine.ctl.signal, results = [];
+  try{
+    for(let bi = 0; bi < batches.length; bi++){
+      if(PU !== mine) return;
+      const batch = batches[bi], range = rangeLabel(batch);
+      const partTxt = batches.length > 1 ? `part ${bi + 1} of ${batches.length} (${range})` : range;
+      setPlansMsg(`Preparing ${partTxt}…`); renderWizardKeepFocus();
+      const images = [], labels = [];
+      if(max > 0){
+        for(const {f, p} of batch){
+          if(PU !== mine || signal.aborted) return;
+          try{ const blob = f.kind === 'image' ? await shrinkImage(f.blob, 3500000) : await renderPage(f.doc, p.n, 1800, true); if(blob){ images.push(blob); labels.push(pageLabel(f, p)); } }catch(e){}
+        }
+      }
+      let text = '';
+      batch.forEach(({f, p}) => {
+        if(!p.text || p.text.length < 20) return;
+        const marks = (p.hl || []).length ? `Highlighted or marked on this page: ${p.hl.map(x => `"${x}"`).join('; ')}\n` : '';
+        const chunk = `\n--- ${pageLabel(f, p)} ---\n${p.text}\n${marks}`;
+        if(text.length + chunk.length < 120000) text += chunk;
+      });
+      if(!images.length && !text) continue;
+      setPlansMsg(`Claude is reviewing ${partTxt}. ${batches.length > 1 ? 'Each part takes about a minute.' : 'This usually takes under a minute.'}`);
+      const opts = {signal}; if(images.length) opts.images = images;
+      const res = await sample.json(plansPrompt(labels, text, {part:bi + 1, parts:batches.length}), opts);
+      results.push({range, data:normalizePlans(res)});
+    }
+    if(!results.length){
+      mine.busy = false; mine.ctl = null;
+      mine.error = 'These pages have no readable text, and this view can’t send images to Claude.';
+      renderWizardKeepFocus(); return;
+    }
+    let final = results[0].data;
+    if(results.length > 1){
+      setPlansMsg('Comparing all the documents for discrepancies…');
+      try{ final = normalizePlans(await sample.json(mergePrompt(results), {signal})); }
+      catch(e){ if(e && e.code === 'cancelled') throw e; final = mergeLocal(results); }
+    }
+    if(PU !== mine || !S.wiz) return;
+    const d = S.wiz.draft;
+    d.plans = d.plans || {};
+    d.plans.data = final;
+    d.plans.reviewedAt = new Date().toISOString();
+    d.plans.reviewedFrom = [...new Set(mine.files.map(f => f.kind === 'pdf' ? `${f.name} (${plural(f.pages.length,'page')})` : f.name))];
+    mine.busy = false; mine.ctl = null; mine.msg = ''; mine.reviewed = true;
+    const fill = autoFillAll(d); mine.lastFill = fill;
+    persistDraft(); renderWizardKeepFocus();
+    const nc = (final.conflicts || []).length;
+    toast(`Reviewed all ${plural(totalPages(),'page')}.${fill.rep.fields ? ` Filled ${plural(fill.rep.fields,'field')}.` : ''}${nc ? ` Found ${plural(nc,'discrepancy','discrepancies')}.` : ''}`, fill.rep.fields ? {label:'Undo', fn:undoFill} : null);
+  }catch(e){
+    if(PU !== mine) return;
+    mine.busy = false; mine.ctl = null; mine.msg = '';
+    mine.error = plansErrorText(e);
+    renderWizardKeepFocus();
+  }
+}
+// Older reviews stored the pad under "concrete" in feet; read them the same way
+function planPads(data){
+  const c = data.concrete;
+  const legacy = c ? {length:c.padLength, width:c.padWidth, thickness:c.padThickness, lengthIn:c.padLengthFt ? c.padLengthFt * 12 : null, widthIn:c.padWidthFt ? c.padWidthFt * 12 : null, thicknessIn:c.padThicknessIn, strengthPsi:c.strengthPsi, reinforcement:c.reinforcement, notes:c.notes, sources:c.sources} : null;
+  return {detail:data.padDetail || legacy || {}, layout:data.padLayout || {}};
+}
+const sizeText = p => p ? [p.length, p.width, p.thickness].filter(Boolean).join(' × ') : '';
+const ftIn = n => { const r = Math.round(n), ft = Math.floor(r / 12); return `${ft}'-${r - ft * 12}"`; };
+const inch = n => `${Math.round(n * 10) / 10}"`;
+function padYards(p){ if(!(p && p.lengthIn && p.widthIn && p.thicknessIn)) return null; const y = p.lengthIn * p.widthIn * p.thicknessIn / 46656; return y > 0 && y < 1000 ? Math.ceil(y * 2) / 2 : null; }
+function padBase(data){
+  const t = data.fuelTank || {}, g = data.generator || {};
+  if(t.lengthIn && t.widthIn) return {name:'fuel tank', L:Math.max(t.lengthIn, t.widthIn), W:Math.min(t.lengthIn, t.widthIn)};
+  if(g.lengthIn && g.widthIn) return {name:'generator', L:Math.max(g.lengthIn, g.widthIn), W:Math.min(g.lengthIn, g.widthIn)};
+  return null;
+}
+// The pad should run about 12" past the fuel tank (or the generator, with no tank) on every side,
+// and the plans' pad detail should agree with the submittal's pad layout.
+function padChecks(data){
+  const out = []; if(!data) return out;
+  const {detail, layout} = planPads(data), base = padBase(data);
+  const dims = x => (x && x.lengthIn && x.widthIn) ? {L:Math.max(x.lengthIn, x.widthIn), W:Math.min(x.lengthIn, x.widthIn), T:x.thicknessIn || null} : null;
+  const dd = dims(detail), ld = dims(layout);
+  const label = (x, d) => sizeText(x) || `${ftIn(d.L)} × ${ftIn(d.W)}`;
+  if(dd && ld){
+    const diff = Math.abs(dd.L - ld.L) > 1 || Math.abs(dd.W - ld.W) > 1 || (dd.T && ld.T && Math.abs(dd.T - ld.T) > 0.5);
+    out.push(diff ? {ok:false, text:`Pad size mismatch: the pad detail in the plans shows ${label(detail, dd)}, but the submittal pad layout shows ${label(layout, ld)}.`} : {ok:true, text:'The pad detail in the plans matches the submittal pad layout.'});
+  } else if(dd || ld){
+    out.push({ok:null, text:dd ? 'No pad size was found on a submittal pad layout to compare with the pad detail.' : 'No pad detail was found in the plans to compare with the submittal pad layout.'});
+  }
+  if(base){
+    [['Pad detail', dd], ['Submittal pad layout', ld]].forEach(([name, d]) => {
+      if(!d) return;
+      const sides = (d.W - base.W) / 2, ends = (d.L - base.L) / 2;
+      const side = (n, where) => n >= 0 ? `runs ${inch(n)} past the ${base.name} ${where}` : `falls ${inch(-n)} short of the ${base.name} ${where}`;
+      const txt = `${name}: the pad ${side(sides, 'on each long side')} and ${side(ends, 'on each end')}`;
+      if(Math.min(sides, ends) < 11) out.push({ok:false, text:`${txt}. It should be about 12" on all sides, so the pad needs to be at least ${ftIn(base.L + 24)} × ${ftIn(base.W + 24)}.`});
+      else out.push({ok:true, text:`${txt}.`});
+    });
+  } else if(dd || ld){
+    out.push({ok:null, text:'No fuel tank or generator base dimensions were found, so the 12" pad extension couldn’t be checked.'});
+  }
+  return out;
+}
+function checksHTML(list){ return list.length ? `<ul class="checks">${list.map(c => `<li class="${c.ok === false ? 'bad' : c.ok ? 'good' : ''}">${esc(c.text)}</li>`).join('')}</ul>` : ''; }
+const enclIncluded = data => !!((data.enclosure || {}).includedInGeneratorWeight || (data.generator || {}).includesEnclosure);
+const liftWeight = base => base ? Math.ceil(base * 1.1 - 1e-9) : null;
+// Total package weight from the submittal: the stated total (usually on the pad layout), otherwise
+// the submittal's generator, enclosure, fuel tank and selected option weights added together.
+function planPackage(data){
+  const g = data.generator || {}, e = data.enclosure || {}, t = data.fuelTank || {}, pk = data.packageWeight || {};
+  if(pk.weightLbs) return {base:pk.weightLbs, lift:liftWeight(pk.weightLbs), basis:pk.fromPadLayout ? 'stated on the submittal pad layout' : 'stated on the submittal', sources:pk.sources || []};
+  const opts = (data.selectedOptions || []).filter(o => o.weightLbs);
+  const parts = [g.weightLbs, enclIncluded(data) ? null : e.weightLbs, t.weightLbs, ...opts.map(o => o.weightLbs)].filter(Boolean);
+  if(!parts.length) return {base:null, lift:null, basis:'', sources:[]};
+  const base = parts.reduce((a, b) => a + b, 0);
+  const names = ['generator', !enclIncluded(data) && e.weightLbs ? 'enclosure' : null, t.weightLbs ? 'fuel tank' : null, opts.length ? 'selected option' : null].filter(Boolean);
+  let basis = `added up from the submittal’s ${joinAnd(names)} weights`;
+  if(e.basis === 'heaviest' && !enclIncluded(data)) basis += ', using the heaviest enclosure option since none was marked as selected';
+  if(!enclIncluded(data) && !e.weightLbs) basis += '; no enclosure weight was found, so this may be low';
+  return {base, lift:liftWeight(base), basis, sources:[...new Set([].concat(g.sources || [], e.sources || [], t.sources || []))].slice(0, 6)};
+}
+// One crane block: the total package weight in its field, times 1.1
+function packageCalc(it){
+  const base = toNum(it.pkgWeight);
+  const fromPlans = it._fromPlans && it._fromPlans.pkgWeight !== undefined && sameVal(it.pkgWeight, it._fromPlans.pkgWeight);
+  return {base, lift:liftWeight(base), basis:fromPlans ? (it.pkgBasis || '') : ''};
+}
+function packageBlock(it){
+  const pc = packageCalc(it);
+  let h = `<div class="fdep pkg"><h4>Lift weight</h4>`;
+  if(pc.base){
+    h += `<p>Total package weight from the submittal: <b>${fmtNum(pc.base)} lbs</b>${pc.basis ? `<br><span class="muted">${esc(pc.basis.charAt(0).toUpperCase() + pc.basis.slice(1))}.</span>` : ''}</p>`;
+    h += `<div class="pk-total">Total package weight × 1.1 = <b>${fmtNum(pc.lift)} lbs</b></div>`;
+  } else {
+    h += `<p class="muted">Enter the total package weight from the submittal above, or upload the submittal on step 1. It’s multiplied by 1.1 here.</p>`;
+  }
+  return h + `</div>`;
+}
+function planFacts(type, data){
+  if(!data) return [];
+  const g = data.generator || {}, e = data.enclosure || {}, t = data.fuelTank || {}, a = data.ats || {};
+  const lbs = n => n != null ? `${fmtNum(n)} lbs` : null;
+  const rows = [];
+  const add = (label, value, src, hl) => { if(value) rows.push({label, value, src:(src || []).join(', '), hl:!!hl}); };
+  if(type === 'concrete'){
+    const {detail, layout} = planPads(data);
+    add('Pad detail (plans)', sizeText(detail), detail.sources);
+    add('Pad layout (submittal)', sizeText(layout), layout.sources);
+    add('Strength', detail.strengthPsi ? `${fmtNum(detail.strengthPsi)} psi` : null, detail.sources);
+    add('Reinforcement', detail.reinforcement, detail.sources);
+    const yd = padYards(detail.lengthIn ? detail : layout); add('Volume', yd ? `about ${yd} yd³, figured from the pad size, before waste` : null);
+    add('Pad notes', detail.notes, detail.sources);
+  }
+  if(type === 'generator'){ add('Make and model', g.makeModel, g.sources); add('Size', g.kw ? `${fmtNum(g.kw)} kW` : null, g.sources); add('Fuel', g.fuel, g.sources); }
+  if(type === 'fuel'){ add('Tank capacity', t.capacityGal ? `${fmtNum(t.capacityGal)} gallons` : null, t.sources); add('Tank', t.description, t.sources); }
+  if(type === 'ats'){ add('Amperage', a.amps, a.sources); add('Quantity', a.quantity ? String(a.quantity) : null, a.sources); add('Make and model', a.model, a.sources); }
+  if(type === 'crane'){
+    const pp = planPackage(data);
+    add('Total package weight', pp.base ? `${lbs(pp.base)}, ${pp.basis}` : 'Not found on the submittal', pp.sources);
+    if(pp.lift) add('Lift weight', `${lbs(pp.lift)} (total package weight × 1.1)`, null, true);
+    (data.otherFacts || []).filter(f => !/\b(lbs?|pounds|weight)\b/i.test(f.value + ' ' + f.label)).forEach(f => add(f.label, f.value, f.source ? [f.source] : []));
+  }
+  return rows;
+}
+function planFill(type, data){
+  const o = {};
+  if(!data) return o;
+  const g = data.generator || {}, e = data.enclosure || {}, t = data.fuelTank || {}, a = data.ats || {}, pk = data.packageWeight || {};
+  if(type === 'concrete'){
+    const {detail, layout} = planPads(data);
+    const size = sizeText(detail) || sizeText(layout); if(size) o.padSize = size;
+    if(detail.strengthPsi){ const opt = {3000:'3,000 psi', 4000:'4,000 psi', 5000:'5,000 psi'}[detail.strengthPsi]; o.psi = opt || 'Other'; if(!opt) o._note = `Mix strength per plans: ${fmtNum(detail.strengthPsi)} psi`; }
+    if(detail.reinforcement) o.rebar = detail.reinforcement;
+    const yd = padYards(detail.lengthIn ? detail : layout); if(yd) o.yards = String(yd);
+  }
+  if(type === 'generator'){ if(g.makeModel) o.makeModel = g.makeModel; if(g.kw) o.kw = String(g.kw); }
+  if(type === 'fuel'){
+    if(t.capacityGal) o.tank = String(t.capacityGal);
+    const fl = (g.fuel || '').toLowerCase();
+    if(/diesel/.test(fl)) o.fuelType = 'Diesel'; else if(/natural gas/.test(fl)) o.fuelType = 'Natural gas'; else if(/propane|\blp\b/.test(fl)) o.fuelType = 'Propane (LP)';
+  }
+  if(type === 'ats'){ if(a.amps) o.amps = a.amps; if(a.quantity) o.qty = String(a.quantity); if(a.model) o.model = a.model; }
+  if(type === 'crane'){
+    const pp = planPackage(data);
+    if(pp.base){ o.pkgWeight = fmtNum(pp.base); o.pkgBasis = pp.basis; }
+  }
+  return o;
+}
+const sameVal = (a, b) => JSON.stringify(a == null ? '' : a) === JSON.stringify(b == null ? '' : b);
+// Fill one block. Empty fields and fields still holding an earlier plan value get the new plan value;
+// anything you typed yourself is kept and reported (unless force is on, as with "Fill from plans").
+function fillItem(it, type, vals, rep, force, stepNav){
+  it._fromPlans = it._fromPlans || {};
+  let n = 0;
+  Object.keys(vals).forEach(k => {
+    if(k.startsWith('_')) return;
+    const v = vals[k], cur = it[k];
+    const empty = cur == null || (typeof cur === 'string' && !cur.trim()) || (Array.isArray(cur) && !cur.length);
+    if(sameVal(cur, v)){ it._fromPlans[k] = v; return; }
+    if(k === 'fuelType' && !empty && !force) return;
+    if(force || empty || (it._fromPlans[k] !== undefined && sameVal(cur, it._fromPlans[k]))){
+      it[k] = Array.isArray(v) ? clone(v) : v; it._fromPlans[k] = v; n++;
+      if(k === 'psi' && vals._note && !(it.notes || '').includes(vals._note)) it.notes = (it.notes ? it.notes + '\n' : '') + vals._note;
+    } else if(rep && typeof v === 'string'){
+      rep.conflicts.push({itemId:it.id, type, k, label:fieldLabel(type, k), step:stepNav, mine:String(cur), plan:v, used:false});
+    }
+  });
+  return n;
+}
+function applyPlans(itemId){
+  if(!S.wiz) return;
+  const step = STEPS[S.wiz.step], d = S.wiz.draft;
+  const it = d.milestones.find(x => x.id === itemId); if(!it) return;
+  const prev = clone(it);
+  const n = fillItem(it, step.type, planFill(step.type, d.plans && d.plans.data), null, true, step.nav);
+  renderWizardKeepFocus();
+  toast(n ? `Filled ${plural(n,'field')} from the plans.` : 'This block already matches the plans.', n ? {label:'Undo', fn:() => { if(!S.wiz) return; const i = S.wiz.draft.milestones.findIndex(x => x.id === itemId); if(i >= 0){ S.wiz.draft.milestones[i] = prev; renderWizardKeepFocus(); } }} : null);
+}
+function sourcesText(list){ const l = list || []; return l.length > 4 ? l.slice(0, 4).join(', ') + ` and ${l.length - 4} more` : l.join(', '); }
+function planFileLinks(files, withRemove){
+  if(!(files || []).length) return '';
+  return `<div class="plans-files"><span class="lbl">Plans on file</span>${files.map(f => `<span class="pf">${IN_CLAUDE && f.assetId ? `<a href="/_blob/${esc(f.assetId)}" target="_blank" rel="noopener">${esc(f.name)}</a>` : esc(f.name)}${withRemove ? `<button class="btn btn-sm btn-ghost" data-act="plans-remove" data-id="${esc(f.assetId || '')}" aria-label="Remove ${esc(f.name)}">Remove</button>` : ''}</span>`).join('')}</div>`;
+}
+function planFileBlock(f){
+  const marked = f.pages.filter(p => (p.hl || []).length).length;
+  const info = f.kind === 'pdf' ? [plural(f.pages.length,'page'), f.hasText ? '' : 'scanned, no text layer', marked ? `marks on ${plural(marked,'page')}` : '', f.total > f.pages.length ? `only the first ${f.pages.length} of ${f.total} pages opened` : ''].filter(Boolean).join(', ') : 'Image';
+  return `<div class="pfile"><div class="pfile-h"><b>${esc(f.name)}</b><span class="muted">${esc(info)}</span><button class="btn btn-sm btn-ghost" data-act="plans-drop" data-f="${f.key}" ${PU && PU.busy ? 'disabled' : ''}>Remove</button></div></div>`;
+}
+const discrepanciesHTML = list => (list || []).length ? `<h4 class="fact-h">Discrepancies</h4>${checksHTML(list.map(t => ({ok:false, text:t})))}` : '';
+const CONFLICT_WORDS = {concrete:/pad|slab|concrete|psi|rebar|reinforc|thick/i, generator:/generator|genset|kw|model|voltage|fuel type/i, fuel:/tank|gallon|fuel/i, ats:/ats|transfer|amp/i, crane:/weight|lbs|enclosure|tank|crane|dimension|footprint/i};
+const FILL_TYPES = ['concrete','generator','ats','fuel','crane'];
+function fieldLabel(type, k){ const st = STEP_BY_TYPE[type === 'craneTotal' ? 'crane' : type]; const f = st && st.fields.find(x => x.k === k); return f ? f.label : k; }
+function joinAnd(list){ return list.length < 2 ? list.join('') : list.slice(0, -1).join(', ') + ' and ' + list[list.length - 1]; }
+function autoFillAll(d){
+  const data = d.plans && d.plans.data, before = clone(d.milestones);
+  const rep = {fields:0, steps:[], created:[], conflicts:[], fdep:''};
+  if(!data) return {before, rep};
+  FILL_TYPES.forEach(type => {
+    const vals = planFill(type, data);
+    if(!Object.keys(vals).some(k => !k.startsWith('_'))) return;
+    const step = STEP_BY_TYPE[type];
+    let it = d.milestones.find(m => m.type === type);
+    if(!it){ it = {id:uid('m'), type}; d.milestones.push(it); rep.created.push(step.nav); }
+    const n = fillItem(it, type, vals, rep, false, step.nav);
+    if(n){ rep.fields += n; rep.steps.push({nav:step.nav, n}); }
+  });
+  const fuel = d.milestones.find(m => m.type === 'fuel');
+  if(fuel && fdepRequired(fuel)) rep.fdep = `The ${fmtNum(toNum(fuel.tank))} gallon fuel tank is flagged for FDEP inspections. Add its installation date on the Fuel step to get the notice reminders.`;
+  return {before, rep};
+}
+function undoFill(){
+  if(!S.wiz || !PU || !PU.lastFill || PU.lastFill.undone) return;
+  S.wiz.draft.milestones = clone(PU.lastFill.before);
+  PU.lastFill.undone = true;
+  persistDraft(); renderWizardKeepFocus();
+  toast('Fill undone. The plan results are still here if you need them.');
+}
+function useConflict(i){
+  if(!S.wiz || !PU || !PU.lastFill) return;
+  const list = PU.lastFill.rep.conflicts, idx = i == null ? list.map((_, j) => j) : [i];
+  idx.forEach(j => { const c = list[j]; if(!c || c.used) return; const it = S.wiz.draft.milestones.find(m => m.id === c.itemId); if(it){ it[c.k] = c.plan; it._fromPlans = it._fromPlans || {}; it._fromPlans[c.k] = c.plan; c.used = true; } });
+  persistDraft(); renderWizardKeepFocus();
+}
+function factsDL(rows){ return `<dl class="facts">${rows.map(r => `<dt${r.hl ? ' class="hl"' : ''}>${esc(r.label)}</dt><dd>${r.hl ? `<mark>${esc(r.value)}</mark>` : esc(r.value)}${r.src ? `<span class="src">${esc(r.src)}</span>` : ''}</dd>`).join('')}</dl>`; }
+function reviewedLine(pl){ return `Reviewed ${esc(pl.reviewedAt ? fmtShort(toISO(new Date(pl.reviewedAt))) : '')} from ${esc(sourcesText(pl.reviewedFrom) || 'your plans')}.`; }
+function plansUploadHTML(){
+  const d = S.wiz.draft, pl = d.plans || {}, data = pl.data;
+  const noClaude = PU && PU.canSample === false;
+  const started = PU && (PU.files.length || data);
+  let h = `<section class="plans plans-main" aria-labelledby="plans-h"><div class="plans-head"><div><h3 id="plans-h">Plans and submittals</h3><p class="muted">Upload the plans and equipment submittals, and Claude will fill in the pad size and strength, generator, enclosure and fuel tank weights and dimensions, tank capacity, and ATS details in the steps ahead. You can check and change everything as you go.</p></div>`;
+  h += `<div class="btns">${PU && !noClaude ? `<button class="btn ${started ? 'btn-sm' : 'btn-primary'}" data-act="plans-upload" ${PU.busy ? 'disabled' : ''}>${started ? 'Upload more' : 'Upload plans and submittals'}</button>` : ''}</div></div>`;
+  if(noClaude) h += IN_CLAUDE ? `<p class="hint">Plan review isn’t available in this view right now. You can still type the values in on each step.</p>` : `<p class="hint">Plan review on this website needs your Anthropic API key. Add it under Settings, Plan review, then open this project again. You can still type the values in on each step.</p>`;
+  if(PU && PU.error) h += `<p class="err" role="alert">${esc(PU.error)}</p>`;
+  if(PU && PU.note) h += `<p class="hint">${esc(PU.note)}</p>`;
+  if(PU && PU.files.length){
+    h += PU.files.map(planFileBlock).join('');
+    if(!PU.busy){
+      const n = totalPages(), max = Math.min(PU.maxImages, 20) || 20, parts = Math.ceil(n / max);
+      h += `<div class="btns" style="margin-top:12px;align-items:center"><button class="btn ${PU.reviewed ? '' : 'btn-primary'} btn-sm" data-act="plans-review">${PU.reviewed ? 'Review all pages again' : `Review all ${plural(n,'page')} and fill in the project`}</button><span class="hint" style="margin:0">Every page of every document is checked${parts > 1 ? `, in ${parts} parts of up to ${max} pages (about a minute each), then compared for discrepancies` : ' and compared for discrepancies'}.</span></div>`;
+    }
+  }
+  if(PU && PU.busy) h += `<div class="plans-busy" role="status"><span class="spin" aria-hidden="true"></span><span id="plans-msg">${esc(PU.msg)}</span>${PU.ctl ? '<button class="btn btn-sm btn-ghost" data-act="plans-stop">Stop</button>' : ''}</div>`;
+  if(PU && PU.lastFill && !PU.lastFill.undone){
+    const r = PU.lastFill.rep;
+    h += `<div class="fill-sum" role="status">`;
+    h += r.fields ? `<p><b>Filled ${plural(r.fields,'field')}:</b> ${esc(r.steps.map(x => `${x.nav} (${x.n})`).join(', '))}.</p>` : `<p>Nothing new to fill in. Every field the plans cover already has a value.</p>`;
+    if(r.created.length) h += `<p>Added ${esc(joinAnd(r.created))} to the schedule so the values have a place to go. Add the dates when you reach those steps.</p>`;
+    if(r.fdep) h += `<p>${esc(r.fdep)}</p>`;
+    const open = r.conflicts.map((c, i) => Object.assign({i}, c)).filter(c => !c.used);
+    if(open.length){
+      h += `<p style="margin-top:8px">Kept your entries where they differ from the plans:</p><ul class="conf">${open.map(c => `<li><span>${esc(c.step)}, ${esc(c.label)}: yours <b>${esc(c.mine)}</b>, plans <b>${esc(c.plan)}</b></span><button class="btn btn-sm" data-act="plans-use" data-i="${c.i}">Use plans</button></li>`).join('')}</ul>`;
+      if(open.length > 1) h += `<button class="btn btn-sm" data-act="plans-use-all">Use the plan values for all of these</button>`;
+    }
+    if(r.fields || r.conflicts.some(c => c.used)) h += `<p style="margin-top:8px"><button class="linkbtn" data-act="plans-undo">Undo ${r.fields ? 'the fill' : 'these changes'}</button></p>`;
+    h += `</div>`;
+  }
+  if(data){
+    h += `<div class="plans-res"><p class="muted" style="font-size:14.5px">${reviewedLine(pl)}</p>`;
+    let any = false;
+    [['concrete','Concrete pad'],['generator','Generator'],['fuel','Fuel tank'],['ats','Transfer switch'],['crane','For the crane']].forEach(([t, name]) => {
+      const rows = planFacts(t, data); if(!rows.length) return;
+      any = true; h += `<h4 class="fact-h">${esc(name)}</h4>${factsDL(rows)}`;
+      if(t === 'concrete') h += checksHTML(padChecks(data));
+    });
+    if(!any) h += `<p class="muted">No sizes, weights or capacities turned up in these documents.</p>`;
+    h += discrepanciesHTML(data.conflicts);
+    if(!(d.name || '').trim()) h += `<p class="err" style="font-weight:500">Add the project name above so these results are saved.</p>`;
+    if(any) h += `<p class="hint">Double-check anything that goes into a lift plan.</p>`;
+    h += `</div>`;
+  }
+  h += planFileLinks(pl.files, true);
+  return h + `</section>`;
+}
+function plansBlockHTML(step){
+  const d = S.wiz.draft, pl = d.plans || {}, data = pl.data;
+  if(!data){
+    if(PU && PU.canSample === false) return '';
+    return `<p class="plans-hint">Upload plans and submittals on <button class="linkbtn" data-act="wiz-goto" data-i="0">step 1</button> and this step fills in on its own.</p>`;
+  }
+  const facts = planFacts(step.type, data);
+  let h = `<section class="plans" aria-labelledby="plans-h"><div class="plans-head"><div><h3 id="plans-h">From the plans</h3><p class="muted" style="font-size:14.5px">${reviewedLine(pl)} <button class="linkbtn" data-act="wiz-goto" data-i="0">Change on step 1</button></p></div></div>`;
+  h += facts.length ? factsDL(facts) : `<p class="muted">Nothing for this step turned up in the pages reviewed.</p>`;
+  if(step.type === 'concrete') h += checksHTML(padChecks(data));
+  const rel = (data.conflicts || []).filter(t => CONFLICT_WORDS[step.type] && CONFLICT_WORDS[step.type].test(t));
+  if(rel.length) h += discrepanciesHTML(rel);
+  if(facts.length) h += `<p class="hint">Empty fields below were filled in from the plans. “Fill from plans” on a block replaces its values with the plans’ values.</p>`;
+  return h + `</section>`;
+}
+function projectPlansHTML(p){
+  const pl = p.plans || {};
+  if(!pl.data && !(pl.files || []).length){
+    return IN_CLAUDE ? `<h2 class="sec-h" style="margin-top:30px">Plans</h2><p class="note">No plans reviewed yet. <button class="linkbtn" data-act="edit-step" data-pid="${esc(p.id)}" data-step="job" data-item="">Upload plans</button> to fill in pad, equipment and tank details.</p>` : '';
+  }
+  const seen = new Set(), rows = [];
+  ['concrete','generator','fuel','crane'].forEach(t => planFacts(t, pl.data).forEach(r => { if(!seen.has(r.label) && rows.length < 18){ seen.add(r.label); rows.push(r); } }));
+  let h = `<h2 class="sec-h" style="margin-top:30px">Plans</h2>`;
+  if(pl.data) h += `<p class="muted" style="font-size:14.5px">Reviewed ${esc(pl.reviewedAt ? fmtShort(toISO(new Date(pl.reviewedAt))) : '')} from ${esc(sourcesText(pl.reviewedFrom) || 'your plans')}.</p>`;
+  if(rows.length) h += factsDL(rows);
+  if(pl.data) h += checksHTML(padChecks(pl.data)) + discrepanciesHTML(pl.data.conflicts);
+  h += planFileLinks(pl.files, false);
+  h += `<p style="margin-top:12px"><button class="linkbtn" data-act="edit-step" data-pid="${esc(p.id)}" data-step="job" data-item="">Review plans</button></p>`;
+  return h;
+}
+
+/* ---------- Calendar file (.ics inside a .zip) ---------- */
+function icsEsc(s){ return String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n'); }
+function icsFold(line){
+  const enc = new TextEncoder(); let out = '', cur = '', bytes = 0;
+  for(const ch of line){ const b = enc.encode(ch).length; if(bytes + b > (out ? 74 : 75)){ out += (out ? '\r\n ' : '') + cur; cur = ''; bytes = 0; } cur += ch; bytes += b; }
+  return out ? out + '\r\n ' + cur : cur;
+}
+const icsDate = iso => iso.replace(/-/g,'');
+function icsDT(iso, time, addMin){
+  const [h, mi] = (time || '08:00').split(':').map(Number);
+  const d = parseISO(iso); d.setHours(h, mi + (addMin||0), 0, 0);
+  return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+}
+function buildICS(){
+  const t = todayISO(), now = new Date();
+  const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth()+1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}${pad(now.getUTCSeconds())}Z`;
+  const L = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Lead Time//Project reminders//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Lead Time project reminders'];
+  let n = 0;
+  allEvents().filter(ev => !ev.inactive && !ev.done && ev.date >= t).forEach(ev => {
+    const p = ev.project, desc = detailLines(ev).join('\n');
+    const uidBase = `${p.id}-${ev.id}`.replace(/[^A-Za-z0-9_.-]/g,'');
+    L.push('BEGIN:VEVENT', `UID:${uidBase}@leadtime`, `DTSTAMP:${stamp}`);
+    if(ev.time) L.push(`DTSTART:${icsDT(ev.date, ev.time)}`, `DTEND:${icsDT(ev.date, ev.time, 60)}`);
+    else L.push(`DTSTART;VALUE=DATE:${icsDate(ev.date)}`, `DTEND;VALUE=DATE:${icsDate(addDays(ev.date,1))}`);
+    L.push(`SUMMARY:${icsEsc(ev.title + ': ' + p.name)}`);
+    if(p.siteAddress) L.push(`LOCATION:${icsEsc(p.siteAddress)}`);
+    L.push(`DESCRIPTION:${icsEsc(desc)}`, 'TRANSP:TRANSPARENT', 'END:VEVENT'); n++;
+    if(ev.noRemind) return;
+    const rs = remState(ev);
+    rs.ticks.filter(x => x.st === 'upcoming' && x.rd >= t).forEach(x => {
+      L.push('BEGIN:VEVENT', `UID:${uidBase}-r${x.o}@leadtime`, `DTSTAMP:${stamp}`,
+        `DTSTART:${icsDT(x.rd, S.settings.remindTime)}`, `DTEND:${icsDT(x.rd, S.settings.remindTime, 15)}`,
+        `SUMMARY:${icsEsc(`Reminder: ${ev.title} in ${offLong(x.o)} (${p.name})`)}`,
+        `DESCRIPTION:${icsEsc(`${ev.title} is ${offLong(x.o)} away, on ${fmtLong(ev.date)}.\n\n` + desc)}`,
+        'TRANSP:TRANSPARENT',
+        'BEGIN:VALARM','ACTION:DISPLAY',`DESCRIPTION:${icsEsc('Reminder: ' + ev.title)}`,'TRIGGER:PT0M','END:VALARM','END:VEVENT'); n++;
+    });
+  });
+  L.push('END:VCALENDAR');
+  return {text: L.map(icsFold).join('\r\n') + '\r\n', count:n};
+}
+const CRC_TABLE = (() => { const t = new Uint32Array(256); for(let i = 0; i < 256; i++){ let c = i; for(let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[i] = c >>> 0; } return t; })();
+function crc32(u8){ let c = 0xFFFFFFFF; for(let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipOne(name, text){
+  const enc = new TextEncoder(), nm = enc.encode(name), data = enc.encode(text), crc = crc32(data), d = new Date();
+  const time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth()+1) << 5) | d.getDate();
+  const lh = new DataView(new ArrayBuffer(30)), cd = new DataView(new ArrayBuffer(46)), end = new DataView(new ArrayBuffer(22));
+  lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(6,0x0800,true); lh.setUint16(8,0,true); lh.setUint16(10,time,true); lh.setUint16(12,date,true);
+  lh.setUint32(14,crc,true); lh.setUint32(18,data.length,true); lh.setUint32(22,data.length,true); lh.setUint16(26,nm.length,true); lh.setUint16(28,0,true);
+  cd.setUint32(0,0x02014b50,true); cd.setUint16(4,20,true); cd.setUint16(6,20,true); cd.setUint16(8,0x0800,true); cd.setUint16(10,0,true); cd.setUint16(12,time,true); cd.setUint16(14,date,true);
+  cd.setUint32(16,crc,true); cd.setUint32(20,data.length,true); cd.setUint32(24,data.length,true); cd.setUint16(28,nm.length,true); cd.setUint16(30,0,true); cd.setUint16(32,0,true); cd.setUint16(34,0,true); cd.setUint16(36,0,true); cd.setUint32(38,0,true); cd.setUint32(42,0,true);
+  const cdOff = 30 + nm.length + data.length, cdSize = 46 + nm.length;
+  end.setUint32(0,0x06054b50,true); end.setUint16(4,0,true); end.setUint16(6,0,true); end.setUint16(8,1,true); end.setUint16(10,1,true); end.setUint32(12,cdSize,true); end.setUint32(16,cdOff,true); end.setUint16(20,0,true);
+  return new Blob([lh.buffer, nm, data, cd.buffer, nm, end.buffer], {type:'application/zip'});
+}
+// When the page runs as a file on your own computer (outside Claude), use a normal browser download.
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+function browserDownload(filename, data){
+  const blob = data instanceof Blob ? data : new Blob([data], {type: filename.endsWith('.json') ? 'application/json' : filename.endsWith('.ics') ? 'text/calendar' : 'application/octet-stream'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.style.display = 'none';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+async function saveFile(filename, data, okMsg){
+  const dl = await useCap('downloads');
+  if(!dl){
+    try{ browserDownload(filename, data); toast(okMsg); }
+    catch(e){ toast('The file couldn’t be saved. Try again.'); }
+    return;
+  }
+  try{ await dl.save({filename, data}); toast(okMsg); }
+  catch(e){
+    const c = e && e.code;
+    if(c === 'declined') return;
+    if(c === 'rate_limited') toast('A download is already waiting for your OK.');
+    else if(c === 'extension_not_enabled' || c === 'rejected_extension') toast('That file type can’t be downloaded here.');
+    else toast('The file couldn’t be saved. Try again.');
+  }
+}
+async function exportCalendar(){
+  const ics = buildICS();
+  if(!ics.count){ toast('There are no upcoming dates to add yet.'); return; }
+  if(!IN_CLAUDE){ await saveFile('lead-time-reminders.ics', ics.text, 'Saved. Open lead-time-reminders.ics to add the dates to your calendar.'); return; }
+  await saveFile('lead-time-calendar.zip', zipOne('lead-time-reminders.ics', ics.text), 'Saved. Unzip it, then open lead-time-reminders.ics to add the dates to your calendar.');
+}
+async function backup(){
+  const data = JSON.stringify({app:'lead-time', version:1, exportedAt:new Date().toISOString(), settings:S.settings, projects:Object.values(S.projects)}, null, 2);
+  await saveFile(`lead-time-backup-${todayISO()}.json`, data, 'Backup saved.');
+}
+$('#import-file').addEventListener('change', e => {
+  const file = e.target.files && e.target.files[0]; e.target.value = '';
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let obj; try{ obj = JSON.parse(r.result); }catch(err){ toast('That file isn’t a Lead Time backup.'); return; }
+    const list = Array.isArray(obj.projects) ? obj.projects : (obj.projects && typeof obj.projects === 'object' ? Object.values(obj.projects) : null);
+    if(!list){ toast('That file isn’t a Lead Time backup.'); return; }
+    let n = 0;
+    list.forEach(p => {
+      if(!p || typeof p !== 'object' || !p.name) return;
+      const q = Object.assign(newProject(), p);
+      if(!SAFE_ID.test(String(q.id))) q.id = uid('p');
+      q.milestones = Array.isArray(q.milestones) ? q.milestones.filter(m => m && TYPES[m.type]).map(m => Object.assign({}, m, {id: SAFE_ID.test(String(m.id)) ? m.id : uid('m')})) : [];
+      q.stakeholders = Array.isArray(q.stakeholders) ? q.stakeholders.filter(s => s && typeof s === 'object').map(s => Object.assign({}, s, {id: SAFE_ID.test(String(s.id)) ? s.id : uid('s')})) : [];
+      writeProject(q); n++;
+    });
+    if(obj.settings && typeof obj.settings === 'object'){ S.settings = Object.assign(clone(DEFAULT_SETTINGS), obj.settings); writeSettings(); }
+    toast(n ? `Restored ${plural(n,'project')}.` : 'No projects found in that file.');
+  };
+  r.readAsText(file);
+});
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if(!el) return;
+  const a = el.dataset, act = a.act;
+  if(el.tagName === 'BUTTON') e.preventDefault();
+  switch(act){
+    case 'tab': if(S.wiz) return; go(a.view); break;
+    case 'new-project': openWizard(null); break;
+    case 'example': addExample(); break;
+    case 'open-project': S.projectId = a.id; go('project'); break;
+    case 'edit-step': openWizard(a.pid, a.step, a.item); break;
+    case 'rem-email': handleRem(a.key, Number(a.off), 'sent'); if(!modalEl.hidden) setTimeout(closeModal, 300); break;
+    case 'rem-dismiss': handleRem(a.key, Number(a.off), 'dismissed'); break;
+    case 'rem-preview': { const ev = S.evIndex[a.key]; if(ev){ const rs = remState(ev); emailModal(emailFor(ev, rs), rs.due ? a.key : '', rs.due ? rs.due.o : 0); } break; }
+    case 'digest-preview': emailModal(digestEmail()); break;
+    case 'modal-copy': copyText(modalText); break;
+    case 'modal-close': closeModal(); break;
+    case 'modal-close-soon': setTimeout(closeModal, 300); break;
+    case 'toast-action': { const f = toastFn; toastEl.hidden = true; toastFn = null; if(f) f(); break; }
+    case 'toggle-done': toggleDone(a.pid, a.eid); break;
+    case 'complete-project': { const p = clone(S.projects[a.id]); p.status = p.status === 'complete' ? 'active' : 'complete'; writeProject(p); toast(p.status === 'complete' ? 'Project marked complete. Its reminders are off.' : 'Project reopened.'); break; }
+    case 'delete-project': { const p = S.projects[a.id]; if(!p) return; showModal(`<h2>Delete ${esc(p.name || 'this project')}?</h2><p class="muted">This removes the project and all of its dates, stakeholders and reminders. You’ll have a few seconds to undo.</p><div class="btns"><button class="btn btn-primary" style="background:var(--alert);border-color:var(--alert)" data-act="delete-confirm" data-id="${esc(a.id)}">Delete project</button><button class="btn" data-act="modal-close" data-autofocus>Keep it</button></div>`); break; }
+    case 'delete-confirm': {
+      const copy = S.projects[a.id] ? clone(S.projects[a.id]) : null;
+      closeModal();
+      if(S.wiz && S.wiz.draft.id === a.id){ S.wiz = null; renderWizard(); }
+      removeProject(a.id);
+      if(S.view === 'project') S.view = 'projects';
+      render();
+      toast(`Deleted ${copy && copy.name ? copy.name : 'project'}.`, copy ? {label:'Undo', fn:() => { writeProject(copy); toast('Project restored.'); }} : null);
+      break;
+    }
+    case 'cal-move': { const [y, m] = S.calMonth.split('-').map(Number); const d = new Date(y, m-1+Number(a.n), 1); S.calMonth = toISO(d).slice(0,7); S.calSel = toISO(d); render(); break; }
+    case 'cal-today': S.calMonth = todayISO().slice(0,7); S.calSel = todayISO(); render(); break;
+    case 'cal-day': { S.calSel = a.date; if(a.date.slice(0,7) !== S.calMonth) S.calMonth = a.date.slice(0,7); render(); const b = mainEl.querySelector(`[data-date="${a.date}"]`); if(b) b.focus({preventScroll:true}); if(window.innerWidth < 680){ const dp = $('.day-panel'); if(dp) dp.scrollIntoView({behavior:'smooth', block:'start'}); } break; }
+    case 'off-remove': S.settings.offsets = offsets().filter(o => o !== Number(a.o)); writeSettings(); break;
+    case 'off-add': { const inp = $('#off-new'); const v = Math.round(Number(inp && inp.value)); if(!v || v < 1 || v > 365){ toast('Enter a number of days between 1 and 365.'); if(inp) inp.focus(); return; } S.settings.offsets = [...offsets(), v]; writeSettings(); break; }
+    case 'off-reset': S.settings.offsets = [30,14,7,2]; writeSettings(); break;
+    case 'export-ics': exportCalendar(); break;
+    case 'backup': backup(); break;
+    case 'import': $('#import-file').click(); break;
+    case 'apikey-save': { const inp = $('#set-apikey'); const v = (inp && inp.value || '').trim(); if(!v){ toast('Paste your Anthropic API key first.'); if(inp) inp.focus(); return; } if(setApiKey(v)){ render(); toast('API key saved in this browser. Plan review is on.'); } else toast('This browser blocked saving the key.'); break; }
+    case 'apikey-remove': setApiKey(''); render(); toast('API key removed from this browser.'); break;
+    case 'wiz-goto': wizGo(Number(a.i)); break;
+    case 'wiz-next': wizGo(S.wiz.step + 1); break;
+    case 'wiz-back': S.wiz.error = ''; persistDraft(); S.wiz.step--; S.wiz.focusItem = null; ensureItem(); renderWizard(true); break;
+    case 'wiz-close': if(S.wiz.isNew && !(S.wiz.draft.name||'').trim()){ S.wiz = null; renderWizard(); } else closeWizard(S.wiz.startedNew); break;
+    case 'wiz-finish': if(validateStep()){ const isNew = !S.projects[S.wiz.draft.id]; closeWizard(true); toast(isNew ? 'Project saved. Reminders are set.' : 'Project saved.'); } break;
+    case 'wiz-add': { const s = STEPS[S.wiz.step]; const it = addItem(s); S.wiz.focusItem = it.id; renderWizard(); break; }
+    case 'wiz-quick': { const s = STEPS[S.wiz.step]; const items = listFor(s, S.wiz.draft); const ex = items.find(it => (it.inspType||'').trim() === a.v); if(ex){ S.wiz.focusItem = ex.id; } else { const it = addItem(s, {inspType:a.v, status:'Not scheduled'}); S.wiz.focusItem = it.id; } renderWizard(); break; }
+    case 'plans-upload': $('#plans-file').click(); break;
+    case 'plans-review': reviewPlans(); break;
+    case 'plans-stop': if(PU && PU.ctl) PU.ctl.abort(); break;
+    case 'plans-drop': if(PU){ PU.files = PU.files.filter(f => f.key !== a.f); renderWizardKeepFocus(); } break;
+    case 'plans-remove': removeStoredPlan(a.id); break;
+    case 'plan-apply': applyPlans(a.id); break;
+    case 'plans-undo': undoFill(); break;
+    case 'plans-use': useConflict(Number(a.i)); break;
+    case 'plans-use-all': useConflict(null); break;
+    case 'wiz-remove': { const d = S.wiz.draft; d.milestones = d.milestones.filter(x => x.id !== a.id); d.stakeholders = d.stakeholders.filter(x => x.id !== a.id); renderWizard(); break; }
+  }
+});
+document.addEventListener('change', e => {
+  const el = e.target, c = el.dataset && el.dataset.change; if(!c) return;
+  if(c === 'cal-rem'){ S.calRem = el.checked; render(); }
+  else if(c === 'set-email'){ S.settings.email = el.value.trim(); writeSettings(); toast('Email saved.'); }
+  else if(c === 'set-time'){ S.settings.remindTime = el.value || '08:00'; writeSettings(); }
+  else if(c === 'set-stake'){ S.settings.includeStakeholders = el.checked; writeSettings(); }
+  else if(c === 'set-fdep'){ const n = Math.round(Number(el.value)); S.settings.fdepThreshold = n > 0 ? n : 549; writeSettings(); toast(`FDEP threshold set to ${fmtNum(S.settings.fdepThreshold)} gallons.`); }
+  else if(c === 'wiz-jump'){ const i = Number(el.value); wizGo(i); if(S.wiz && S.wiz.step !== i){ el.value = String(S.wiz.step); } }
+});
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  if(!modalEl.hidden){ closeModal(); return; }
+  if(S.wiz){ if(S.wiz.isNew && !(S.wiz.draft.name||'').trim()){ S.wiz = null; renderWizard(); } else closeWizard(false); }
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && e.target.id === 'off-new'){ e.preventDefault(); const b = mainEl.querySelector('[data-act="off-add"]'); if(b) b.click(); }
+});
+
+// Keep "Today" accurate if the page stays open past midnight
+let lastDay = todayISO();
+setInterval(() => { const t = todayISO(); if(t !== lastDay){ lastDay = t; renderSoft(); } }, 60000);
+
+initStorage();
+})();
+</script>
+</body>
+</html>
